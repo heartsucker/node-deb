@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+service ${node_app} start || echo "${node_app} wasn't even running!"
+

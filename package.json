@@ -1,0 +1,31 @@
+{
+  "name": "node-deb",
+  "version": "0.1.0",
+  "description": "Debian packaging for Node.js projects",
+  "author": "heartsucker <ehartsuyker@gmail.com>",
+  "bin": {
+    "node-deb": "./node-deb"
+  },
+  "scripts": {
+    "test": "/bin/true"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ehartsuyker/node-deb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ehartsuyker/node-deb/issues"
+  },
+  "keywords": [
+    "debian",
+    "ubuntu",
+    "deb",
+    "dpkg",
+    "package",
+    "packaging"
+  ],
+  "preferGlobal": true,
+  "private": false,
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/ehartsuyker/node-deb"
+}

@@ -1,0 +1,41 @@
+#!/bin/bash
+set -e
+
+# Will return true even if deletion fails
+# $1 = user
+deleteUser() {
+  if hash deluser 2>/dev/null; then
+    deluser --quiet --system $1 > /dev/null || true
+  elif hash userdel 2>/dev/null; then
+    userdel $1
+  else
+    echo "WARNING: Could not delete user $1 . No suitable program (deluser, userdel) found"
+  fi
+}
+
+# Will return true even if deletion fails
+# $1 = group
+deleteGroup() {
+  if hash delgroup 2>/dev/null; then
+    delgroup --quiet --system $1 > /dev/null || true
+  elif hash groupdel 2>/dev/null; then
+    groupdel $1
+  else
+    echo "WARNING: Could not delete user $1 . No suitable program (delgroup, groupdel) found"
+  fi
+}
+
+case "$1" in
+   remove|failed-upgrade|abort-upgrade|abort-install|disappear)
+   ;;
+   purge)
+        deleteUser ${node_user}
+        deleteGroup ${node_group}
+   ;;
+   upgrade)
+   ;;
+   *)
+      echo "postinst called with unknown argument \`\$1'" >&2
+   ;;
+esac
+

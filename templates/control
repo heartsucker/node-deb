@@ -1,0 +1,9 @@
+Package: ${node_app}
+Version: ${node_app_version}
+Section: base
+Priority: optional
+Architecture: all
+Depends: nodejs
+Maintainer: ${node_maintainer}
+Description: ${node_description}
+

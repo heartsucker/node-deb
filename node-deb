@@ -1,0 +1,129 @@
+#!/bin/bash
+set -e
+
+# beacuse OSX is shit and can't do `readlink -f`
+readlink_() {
+  local src="${BASH_SOURCE[0]}"
+  while [ -h "$src" ]; do
+    local dir="$(cd -P "$( dirname "$src" )" && pwd)"
+    local src="$(readlink "$src")"
+    [[ $src != /* ]] && src="$dir/$src"
+  done
+  echo "$(cd -P "$( dirname "$src" )" && pwd)"
+}
+
+node_deb_dir=`readlink_ $0`
+
+# All the variables that are injected into templates
+node_app=
+node_app_command=
+node_app_version=
+node_binary=
+node_description=
+node_group=
+node_maintainer=
+node_user=
+
+while getopts "b:g:u:" opt; do
+  case $opt in
+    b)
+      node_binary=$OPTARG
+      ;;
+    g)
+      node_group=$OPTARG
+      ;;
+    u)
+      node_user=$OPTARG
+      ;;
+    \?)
+      cat <<-EOF >&2
+			Valid options:
+			-b <binary name> (default app_name)
+			-g <group for user processes run as> (default app_name)
+			-u <user to run processes as> (default app_name)
+			EOF
+      exit 1
+      ;;
+  esac
+done
+
+shift $(expr $OPTIND - 1)
+
+: ${1:?'You must pick at least one directory to add to the Debian package'}
+
+node_app=`jq -r '.name' package.json`
+if [ "$node_app" == 'null' ]; then echo 'Your package.json must have element "name"' >&2 && exit 1; fi
+
+node_app_command=`jq -r '.node_deb.start_script' package.json`
+if [ "$node_app_command" == 'null' ]; then echo 'Your package.json must have element "node_deb.start_script"' >&2 && exit 1; fi
+
+node_app_version=`jq -r '.["version"]' package.json`
+if [ "$node_app_version" == 'null' ]; then echo 'Your package.json must have element "version"' >&2 && exit 1; fi
+
+node_description=`jq -r '.["description"]' package.json`
+if [ "$node_description" == 'null' ]; then echo 'Your package.json must have element "description"' >&2 && exit 1; fi
+
+node_maintainer=`jq -r '.["author"]' package.json`
+
+: ${node_binary:=$node_app}
+: ${node_group:=$node_app}
+: ${node_user:=$node_app}
+
+deb_dir="${node_app}_${node_app_version}_all"
+
+trap "rm -rf $deb_dir" EXIT
+
+if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
+
+mkdir -p "$deb_dir/DEBIAN"
+mkdir -p "$deb_dir/etc/$node_app"
+mkdir -p "$deb_dir/etc/init"
+mkdir -p "$deb_dir/usr/share/$node_app/bin"
+mkdir -p "$deb_dir/usr/bin"
+
+escape() {
+  echo $(echo $@ | sed -e 's/[]\/$*.^|[]/\\&/g')
+}
+
+replace_vars() {
+  local file=$1
+  local target_file=$2
+
+  cat $file | sed \
+    -e "s/\${node_app}/$(escape $node_app)/g" \
+    -e "s/\${node_app_command}/$(escape $node_app_command)/g" \
+    -e "s/\${node_app_version}/$(escape $node_app_version)/g" \
+    -e "s/\${node_binary}/$(escape $node_binary)/g" \
+    -e "s/\${node_description}/$(escape $node_description)/g" \
+    -e "s/\${node_group}/$(escape $node_group)/g" \
+    -e "s/\${node_maintainer}/$(escape $node_maintainer)/g" \
+    -e "s/\${node_user}/$(escape $node_user)/g" \
+    > $target_file
+}
+
+replace_vars "$node_deb_dir/templates/control" "$deb_dir/DEBIAN/control"
+replace_vars "$node_deb_dir/templates/postinst" "$deb_dir/DEBIAN/postinst"
+replace_vars "$node_deb_dir/templates/postrm" "$deb_dir/DEBIAN/postrm"
+replace_vars "$node_deb_dir/templates/prerm" "$deb_dir/DEBIAN/prerm"
+replace_vars "$node_deb_dir/templates/init.conf" "$deb_dir/etc/init/$node_app.conf"
+replace_vars "$node_deb_dir/templates/binary" "$deb_dir/usr/share/$node_app/bin/$node_binary"
+
+ln -sf "/usr/share/$node_app/bin/$node_binary" "$deb_dir/usr/bin/$node_binary"
+
+chmod -R 0755 "$deb_dir/DEBIAN/"
+chmod -R 0755 "$deb_dir/usr/share/$node_app/bin/$node_binary"
+
+target_files=''
+
+for dir in "$@"; do
+  target_files+=`find $dir -type f`
+  target_files+=' '
+done
+
+for file in $target_files; do
+  dir="$deb_dir/usr/share/$node_app/$(dirname $file)"
+  if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
+  cp "$file" "$dir"
+done
+
+dpkg-deb --build "$deb_dir"
