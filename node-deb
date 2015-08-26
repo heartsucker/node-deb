@@ -24,7 +24,7 @@ node_group=
 node_maintainer=
 node_user=
 
-while getopts "b:g:u:" opt; do
+while getopts "b:g:u:v:" opt; do
   case $opt in
     b)
       node_binary=$OPTARG
@@ -35,12 +35,16 @@ while getopts "b:g:u:" opt; do
     u)
       node_user=$OPTARG
       ;;
+    v)
+      node_app_version=$OPTARG
+      ;;
     \?)
       cat <<-EOF >&2
 			Valid options:
 			-b <binary name> (default app_name)
 			-g <group for user processes run as> (default app_name)
 			-u <user to run processes as> (default app_name)
+			-v <version> (default 'version' from package.js)
 			EOF
       exit 1
       ;;
@@ -57,8 +61,10 @@ if [ "$node_app" == 'null' ]; then echo 'Your package.json must have element "na
 node_app_command=`jq -r '.node_deb.start_script' package.json`
 if [ "$node_app_command" == 'null' ]; then echo 'Your package.json must have element "node_deb.start_script"' >&2 && exit 1; fi
 
-node_app_version=`jq -r '.["version"]' package.json`
-if [ "$node_app_version" == 'null' ]; then echo 'Your package.json must have element "version"' >&2 && exit 1; fi
+if [ -z node_app_version ]; then
+  node_app_version=`jq -r '.["version"]' package.json`
+  if [ "$node_app_version" == 'null' ]; then echo 'If no override is provided, your package.json must have element "version"' >&2 && exit 1; fi
+fi
 
 node_description=`jq -r '.["description"]' package.json`
 if [ "$node_description" == 'null' ]; then echo 'Your package.json must have element "description"' >&2 && exit 1; fi
