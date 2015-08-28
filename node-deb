@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+error_exit() {
+  echo "$@" >&2
+  exit 1
+}
+
 # beacuse OSX is shit and can't do `readlink -f`
 readlink_() {
   local src="${BASH_SOURCE[0]}"
@@ -55,13 +60,19 @@ shift $(expr $OPTIND - 1)
 
 : ${1:?'You must pick at least one directory to add to the Debian package'}
 
+for file_or_dir in "$@"; do
+  if ! [ -e "$file_or_dir" ]; then
+    error_exit "File '$file_or_dir' does not exist. Aborting."
+  fi
+done
+
 node_app=`jq -r '.name' package.json`
 if [ "$node_app" == 'null' ]; then echo 'Your package.json must have element "name"' >&2 && exit 1; fi
 
 node_app_command=`jq -r '.node_deb.start_script' package.json`
 if [ "$node_app_command" == 'null' ]; then echo 'Your package.json must have element "node_deb.start_script"' >&2 && exit 1; fi
 
-if [ -z node_app_version ]; then
+if [ -z $node_app_version ]; then
   node_app_version=`jq -r '.["version"]' package.json`
   if [ "$node_app_version" == 'null' ]; then echo 'If no override is provided, your package.json must have element "version"' >&2 && exit 1; fi
 fi
@@ -119,17 +130,12 @@ ln -sf "/usr/share/$node_app/bin/$node_binary" "$deb_dir/usr/bin/$node_binary"
 chmod -R 0755 "$deb_dir/DEBIAN/"
 chmod -R 0755 "$deb_dir/usr/share/$node_app/bin/$node_binary"
 
-target_files=''
-
-for dir in "$@"; do
-  target_files+=`find $dir -type f`
-  target_files+=' '
-done
-
-for file in $target_files; do
-  dir="$deb_dir/usr/share/$node_app/$(dirname $file)"
-  if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
-  cp "$file" "$dir"
-done
+find "$@" -type f -print0 | {
+  while IFS= read -r -d '' file; do
+    dir="$deb_dir/usr/share/$node_app/$(dirname "$file")"
+    if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
+    cp "$file" "$dir"
+  done
+}
 
 dpkg-deb --build "$deb_dir"
