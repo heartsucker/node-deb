@@ -1,11 +1,15 @@
 # node-deb
 
-Debian packaging for Node.js projects.
+Debian packaging for Node.js projects written 100% in `bash`.
 
 Simple.
 
 ## Installation
 `npm install node-deb`
+
+## Compatibility
+
+This exists mostly as an internal tool for my company, so until there is an `0.2.0` release, there will not be any sort of assurances of compatibility between releases. This includes command line flags, binaries, and init scripts.
 
 ## Usage
 
