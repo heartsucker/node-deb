@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-error_exit() {
+die() {
   echo "$@" >&2
   exit 1
 }
@@ -62,7 +62,7 @@ shift $(expr $OPTIND - 1)
 
 for file_or_dir in "$@"; do
   if ! [ -e "$file_or_dir" ]; then
-    error_exit "File '$file_or_dir' does not exist. Aborting."
+    die "File '$file_or_dir' does not exist. Aborting."
   fi
 done
 
