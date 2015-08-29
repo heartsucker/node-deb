@@ -143,11 +143,38 @@ ln -sf "/usr/share/$node_app/bin/$node_binary" "$deb_dir/usr/bin/$node_binary"
 chmod -R 0755 "$deb_dir/DEBIAN/"
 chmod -R 0755 "$deb_dir/usr/share/$node_app/bin/$node_binary"
 
+# Copy all files into temporary Debian dir
 find "$@" -type f -print0 | {
   while IFS= read -r -d '' file; do
     dir="$deb_dir/usr/share/$node_app/$(dirname "$file")"
     if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
     cp "$file" "$dir"
+  done
+}
+
+write_md5sum() {
+  # Using $@ and not $1 because of files with whitespace
+  local file="$@"
+
+  # Debian/Ubuntu
+  if hash md5sum 2>/dev/null; then
+    local sum=`md5sum "$file" | cut -d ' ' -f1`
+  # OSX
+  elif hash md5 2>/dev/null; then
+    local sum=`md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' '`
+  # Oh dear...
+  else
+    die 'Unable to find suitable md5 sum program'
+  fi
+
+  local file=`echo $file | sed -e "s/$(escape $deb_dir)//" | sed -e 's:^\.::' -e 's:^/*::'`
+  echo "$sum $file" >> "$deb_dir/DEBIAN/md5sums"
+}
+
+# Calculate md5sums
+find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
+  while IFS= read -r -d '' file; do
+    write_md5sum $file
   done
 }
 
