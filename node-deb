@@ -29,13 +29,19 @@ node_group=
 node_maintainer=
 node_user=
 
-while getopts "b:g:u:v:" opt; do
+# Other variables
+no_delete=0
+
+while getopts "b:g:Nu:v:" opt; do
   case $opt in
     b)
       node_binary=$OPTARG
       ;;
     g)
       node_group=$OPTARG
+      ;;
+    N)
+      no_delete=1
       ;;
     u)
       node_user=$OPTARG
@@ -48,8 +54,9 @@ while getopts "b:g:u:v:" opt; do
 			Valid options:
 			-b <binary name> (default app_name)
 			-g <group for user processes run as> (default app_name)
+			-N 'no delete'; do not delete the temporary directory on exit (success or failure)
 			-u <user to run processes as> (default app_name)
-			-v <version> (default 'version' from package.js)
+			-v <version> (default 'version' from package.json)
 			EOF
       exit 1
       ;;
@@ -88,7 +95,13 @@ node_maintainer=`jq -r '.["author"]' package.json`
 
 deb_dir="${node_app}_${node_app_version}_all"
 
-trap "rm -rf $deb_dir" EXIT
+finish() {
+  if [ $no_delete -ne 1 ]; then
+    rm -rf "$deb_dir"
+  fi
+}
+
+trap "finish" EXIT
 
 if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
