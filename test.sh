@@ -4,7 +4,7 @@ set -e
 _pwd=`pwd`
 
 finish() {
-  cd $_pwd
+  cd "$_pwd"
   find test -name *.deb -type f -exec rm -f {} \;
 }
 
