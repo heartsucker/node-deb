@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-error_exit() {
+die() {
   echo "$@" >&2
   exit 1
 }
@@ -29,13 +29,19 @@ node_group=
 node_maintainer=
 node_user=
 
-while getopts "b:g:u:v:" opt; do
+# Other variables
+no_delete=0
+
+while getopts "b:g:Nu:v:" opt; do
   case $opt in
     b)
       node_binary=$OPTARG
       ;;
     g)
       node_group=$OPTARG
+      ;;
+    N)
+      no_delete=1
       ;;
     u)
       node_user=$OPTARG
@@ -48,8 +54,9 @@ while getopts "b:g:u:v:" opt; do
 			Valid options:
 			-b <binary name> (default app_name)
 			-g <group for user processes run as> (default app_name)
+			-N 'no delete'; do not delete the temporary directory on exit (success or failure)
 			-u <user to run processes as> (default app_name)
-			-v <version> (default 'version' from package.js)
+			-v <version> (default 'version' from package.json)
 			EOF
       exit 1
       ;;
@@ -62,7 +69,7 @@ shift $(expr $OPTIND - 1)
 
 for file_or_dir in "$@"; do
   if ! [ -e "$file_or_dir" ]; then
-    error_exit "File '$file_or_dir' does not exist. Aborting."
+    die "File '$file_or_dir' does not exist. Aborting."
   fi
 done
 
@@ -88,7 +95,13 @@ node_maintainer=`jq -r '.["author"]' package.json`
 
 deb_dir="${node_app}_${node_app_version}_all"
 
-trap "rm -rf $deb_dir" EXIT
+finish() {
+  if [ $no_delete -ne 1 ]; then
+    rm -rf "$deb_dir"
+  fi
+}
+
+trap "finish" EXIT
 
 if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
@@ -130,11 +143,38 @@ ln -sf "/usr/share/$node_app/bin/$node_binary" "$deb_dir/usr/bin/$node_binary"
 chmod -R 0755 "$deb_dir/DEBIAN/"
 chmod -R 0755 "$deb_dir/usr/share/$node_app/bin/$node_binary"
 
+# Copy all files into temporary Debian dir
 find "$@" -type f -print0 | {
   while IFS= read -r -d '' file; do
     dir="$deb_dir/usr/share/$node_app/$(dirname "$file")"
     if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
     cp "$file" "$dir"
+  done
+}
+
+write_md5sum() {
+  # Using $@ and not $1 because of files with whitespace
+  local file="$@"
+
+  # Debian/Ubuntu
+  if hash md5sum 2>/dev/null; then
+    local sum=`md5sum "$file" | cut -d ' ' -f1`
+  # OSX
+  elif hash md5 2>/dev/null; then
+    local sum=`md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' '`
+  # Oh dear...
+  else
+    die 'Unable to find suitable md5 sum program'
+  fi
+
+  local file=`echo $file | sed -e "s/$(escape $deb_dir)//" | sed -e 's:^\.::' -e 's:^/*::'`
+  echo "$sum $file" >> "$deb_dir/DEBIAN/md5sums"
+}
+
+# Calculate md5sums
+find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
+  while IFS= read -r -d '' file; do
+    write_md5sum $file
   done
 }
 
