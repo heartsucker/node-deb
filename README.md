@@ -97,6 +97,5 @@ These are both available through `apt` and `brew`.
 
 ## TODO
 - Untested with symlinks
-- Cygwin support
 - Have defaults for command line args in the `node_deb` object in `package.json`
 - Install via `brew`
