@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 
-service ${node_app} start || echo "${node_app} wasn't even running!"
+service ${node_deb_package_name} stop || echo "${node_deb_package_name} wasn't even running!"
 

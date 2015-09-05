@@ -5,7 +5,7 @@ _pwd=`pwd`
 
 finish() {
   cd "$_pwd"
-  find test -name *.deb -type f -exec rm -f {} \;
+  find test -name *.deb -type f | xargs rm -f
 }
 
 trap "finish" EXIT
@@ -18,7 +18,7 @@ die() {
 test-simple-project() {
   echo "Running tests for simple-project"
   cd "$_pwd/test/simple-project"
-  ../../node-deb app.js lib/
+  ../../node-deb -- app.js lib/
   echo "Success for simple-project"
 }
 
@@ -26,9 +26,9 @@ test-whitespace-project() {
   echo "Running tests for whitespace-project"
   cd "$_pwd/test/whitespace-project"
 
-  output=`../../node-deb 'whitespace file.js' 'whitespace folder' 2>&1`
+  output=`../../node-deb -- 'whitespace file.js' 'whitespace folder' 2>&1`
   output+='\n'
-  output+=`../../node-deb whitespace\ file.js whitespace\ folder 2>&1`
+  output+=`../../node-deb --  whitespace\ file.js whitespace\ folder 2>&1`
 
   if [[ $output == '*No such file or directory*' ]]; then
     echo 'There was an error with the test.' >&2
@@ -41,3 +41,5 @@ test-whitespace-project() {
 
 test-simple-project
 test-whitespace-project
+
+finish

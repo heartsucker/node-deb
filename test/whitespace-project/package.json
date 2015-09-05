@@ -7,6 +7,6 @@
     "test": "/bin/true"
   },
   "node_deb": {
-    "start_script": "/bin/true"
+    "start_command": "/bin/true"
   }
 }
