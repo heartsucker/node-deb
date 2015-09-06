@@ -39,9 +39,15 @@ usage() {
   # Local var because of grep
   local helpdoc='HELP'
   local helpdoc+='DOC'
-  echo 'Usage: node-deb [opts] [-- file1 file2 ...]'
+  echo 'Usage: node-deb [opts] -- file1 file2 ...'
   echo 'Opts:'
   grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
+}
+
+zero_check() {
+  if [ -z "$1" ]; then
+    die "Cannot pass zero length string to option $2"
+  fi
 }
 
 while [ -n "$1" ]; do
@@ -49,12 +55,20 @@ while [ -n "$1" ]; do
   value="$2"
   case $param in
     -b | --binary-name)
-      # HELPDOC: The name of the binary (default: $package-name)
+      # HELPDOC: The name of the binary (default: 'node_deb.binary_name' then $package-name)
+      zero_check $value $param
       binary_name="$value"
       shift
       ;;
+    -d | --description)
+      # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
+      zero_check $value $param
+      package_description="$value"
+      shift
+      ;;
     -g | --group)
-      # HELPDOC:  The Unix group the process will run as (default: $user)
+      # HELPDOC:  The Unix group the process will run as (default: 'node_deb.group' then $user)
+      zero_check $value $param
       group="$value"
       shift
       ;;
@@ -63,8 +77,15 @@ while [ -n "$1" ]; do
       usage
       exit 0
       ;;
+    -m | --maintainer)
+      # HELPDOC: The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
+      zero_check $value $param
+      package_maintainer="$value"
+      shift
+      ;;
     -n | --package-name)
-      # HELPDOC: The name of the Debian package (default: 'name' from package.json)
+      # HELPDOC: The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
+      zero_check $value $param
       package_name="$value"
       shift
       ;;
@@ -73,16 +94,18 @@ while [ -n "$1" ]; do
       no_delete_temp=1
       ;;
     --no-md5sums)
-      # HELPDOC: Do not calculate md5sums
+      # HELPDOC: Do not calculate md5sums for DEBIAN directory
       no_md5sums=1
       ;;
     -u | --user)
-      # HELPDOC: The Unix user the process will run as (default: $package-name)
+      # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' then $package-name)
+      zero_check $value $param
       user="$value"
       shift
       ;;
     -v | --version)
-      # HELPDOC: The version of the Debian package (default: 'version' from package.json)
+      # HELPDOC: The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
+      zero_check $value $param
       package_version="$value"
       shift
       ;;
@@ -100,7 +123,7 @@ while [ -n "$1" ]; do
 done
 
 if [ -z "$1 " ]; then
-  die 'You must pick at least one directory to add to the Debian package'
+  die 'You must pick at least one file or directory to add to the Debian package'
 fi
 
 for file in $files; do
@@ -109,29 +132,93 @@ for file in $files; do
   fi
 done
 
-package_name=`jq -r '.name' package.json`
-if [ "$package_name" == 'null' ]; then 
-  die 'Your package.json must have element "name"'
-fi
-
-start_command=`jq -r '.node_deb.start_command' package.json`
-if [ "$start_command" == 'null' ]; then
-  die 'Your package.json must have element "node_deb.start_command"'
-fi
-
-if [ -z $package_version ]; then
-  package_version=`jq -r '.version' package.json`
-  if [ "$package_version" == 'null' ]; then
-    die 'If no override is provided, your package.json must have element "version"'
+set_package_name() {
+  if [ -z "$package_name" ]; then
+    package_name=`jq -r '.node_deb.package_name' package.json`
+    if [[ "$package_name" == 'null' ]]; then
+      package_name=`jq -r '.name' package.json`
+      if [ "$package_name" == 'null' ]; then 
+        die 'If no override is provided, your package.json must have element "node_deb.package_name" or "name"'
+      fi
+    fi
   fi
-fi
+}
 
-package_description=`jq -r '.description' package.json`
-package_maintainer=`jq -r '.author' package.json`
+set_start_command() {
+  start_command=`jq -r '.node_deb.start_command' package.json`
+  if [ "$start_command" == 'null' ]; then
+    die 'Your package.json must have element "node_deb.start_command"'
+  fi
+}
 
-: ${binary_name:=$package_name}
-: ${user:=$package_name}
-: ${group:=$user}
+set_package_version() {
+  if [ -z "$package_version" ]; then
+    package_version=`jq -r '.node_deb.version' package.json`
+    if [[ "$package_version" == 'null' ]]; then
+      package_version=`jq -r '.version' package.json`
+      if [ "$package_version" == 'null' ]; then
+        die 'If no override is provided, your package.json must have element "node_deb.package_version" "version"'
+      fi
+    fi
+  fi
+}
+
+set_binary_name() {
+  if [ -z "$binary_name" ]; then
+    binary_name=`jq -r '.node_deb.binary_name' package.json`
+    if [[ "$binary_name" == 'null' ]]; then
+      binary_name="$package_name"
+    fi
+  fi
+}
+
+set_user() {
+  if [ -z "$user" ]; then
+    user=`jq -r '.node_deb.user' package.json`
+    if [[ "$user" == 'null' ]]; then
+      user="$package_name"
+    fi
+  fi
+}
+
+set_group() {
+  if [ -z "$group" ]; then
+    group=`jq -r '.node_deb.group' package.json`
+    if [[ "$group" == 'null' ]]; then
+      group="$user"
+    fi
+  fi
+}
+
+set_package_description() {
+  if [ -z "$package_description" ]; then
+    package_description=`jq -r '.node_deb.description' package.json`
+    if [[ "$package_description" == 'null' ]]; then
+      package_description=`jq -r '.description' package.json`
+      if [[ "$package_description" == null ]]; then
+        die 'If no override is provided, your package.json must have element "node_deb.package_description" or "description"'
+      fi
+    fi
+  fi
+}
+
+set_package_maintainer() {
+  if [ -z "$package_maintainer" ]; then
+    package_maintainer=`jq -r '.node_deb.maintainer' package.json`
+    if [[ "$package_maintainer" == 'null' ]]; then
+      package_maintainer=`jq -r '.author' package.json`
+    fi
+  fi
+}
+
+set_package_name
+set_package_version
+set_package_description
+set_package_maintainer
+set_binary_name
+set_start_command
+set_user
+set_group
 
 deb_dir="${package_name}_${package_version}_all"
 
@@ -152,16 +239,14 @@ mkdir -p "$deb_dir/usr/share/$package_name/bin"
 mkdir -p "$deb_dir/usr/bin"
 
 escape() {
-  # TODO ? sed -e 's/[]\/$*.^|[]/\\&/g' <<< "$@"
-  echo $(echo $@ | sed -e 's/[]\/$*.^|[]/\\&/g')
+  sed -e 's/[]\/$*.^|[]/\\&/g' <<< "$@"
 }
 
 replace_vars() {
-  local file=$1
-  local target_file=$2
+  local file="$1"
+  local target_file="$2"
 
-  # TODO ? sed < $file \
-  cat $file | sed \
+  sed < $file \
     -e "s/\${node_deb_package_name}/$(escape $package_name)/g" \
     -e "s/\${node_deb_app_command}/$(escape $app_command)/g" \
     -e "s/\${node_deb_package_version}/$(escape $package_version)/g" \
@@ -188,7 +273,7 @@ chmod -R 0755 "$deb_dir/usr/share/$package_name/bin/$binary_name"
 # Copy all files into temporary Debian dir
 find "$@" -type f -print0 | {
   while IFS= read -r -d '' file; do
-    dir="$deb_dir/usr/share/$packag_name/$(dirname "$file")"
+    dir="$deb_dir/usr/share/$package_name/$(dirname "$file")"
     if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
     cp "$file" "$dir"
   done
@@ -217,7 +302,7 @@ write_md5sum() {
 if [ "$no_md5sums" -eq 0 ]; then
   find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
   while IFS= read -r -d '' file; do
-    write_md5sum $file
+    write_md5sum "$file"
   done
 }
 fi

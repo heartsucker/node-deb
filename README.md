@@ -30,6 +30,11 @@ You need to add the following to your `package.json`:
 }
 ```
 
+### Overrides
+Command line options always override values found in the `node_deb` object in `package.json`, and values found in the `node_deb` object always override the values found in the rest of `package.json`.
+
+Examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
+
 ## Examples
 #### Ex. 1
 `package.json`:
@@ -90,7 +95,7 @@ On install, you will get.
 - A Unix group `bar`
 
 #### &c.
-For more examples, look at `test.sh` and in the `test` dir.
+More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
 ## Requirements
 - `dpkg`
