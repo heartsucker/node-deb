@@ -49,14 +49,14 @@ addGroup() {
   fi
 }
 
-addGroup ${node_group} ''
-addUser ${node_user} '' ${node_group} '${node_user} user-daemon' '/bin/false'
+addGroup ${node_deb_group} ''
+addUser ${node_deb_user} '' ${node_deb_group} '${node_deb_user} user-daemon' '/bin/false'
 
-if ! [ -d '/var/log/${node_app}' ]; then
-  mkdir -p '/var/log/${node_app}'
+if ! [ -d '/var/log/${node_deb_package_name}' ]; then
+  mkdir -p '/var/log/${node_deb_package_name}'
 fi
 
-chown ${node_user}:${node_group} /var/log/${node_app}
+chown ${node_deb_user}:${node_deb_group} /var/log/${node_deb_package_name}
 
-service ${node_app} start || echo '${node_app} could not be registered or started'
+service ${node_deb_package_name} start || echo '${node_deb_package_name} could not be registered or started'
 

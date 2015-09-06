@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-cd /usr/share/${node_app}
+cd /usr/share/${node_deb_package_name}
 
-${node_app_command}
+${node_deb_start_command}
 

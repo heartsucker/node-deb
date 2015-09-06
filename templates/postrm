@@ -29,8 +29,8 @@ case "$1" in
    remove|failed-upgrade|abort-upgrade|abort-install|disappear)
    ;;
    purge)
-        deleteUser ${node_user}
-        deleteGroup ${node_group}
+        deleteUser ${node_deb_user}
+        deleteGroup ${node_deb_group}
    ;;
    upgrade)
    ;;
