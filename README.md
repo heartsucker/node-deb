@@ -13,9 +13,9 @@ This exists mostly as an internal tool for my company, so until there is an `0.2
 
 ## Usage
 
-`node-deb [opts] [files/dirs]`
+`node-deb [opts] -- file1 file2 ...`
 
-For the full list of options, do `node-deb` with no arguments.
+For the full list of options, run `node-deb -h`.
 
 ## Configuration
 You need to add the following to your `package.json`:
