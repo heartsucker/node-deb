@@ -59,7 +59,7 @@ You will get:
     - `apt-get install some-app=1.2.3`
 
 On install, you will get.
-- A binary named `some-app`
+- An executable named `some-app`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
   - Script starts the app with the command `/usr/bin/node app.js arg1 arg2 arg3`
 - A Unix user `some-app`
@@ -88,7 +88,7 @@ You will get:
     - `apt-get install some-other-app=20150826`
 
 On install, you will get.
-- A binary named `some-other-app`
+- An executable named `some-other-app`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
   - Script starts the app with the command `/usr/bin/node --harmony index.js`
 - A Unix user `foo`

@@ -22,7 +22,7 @@ node_deb_dir=`readlink_ $0`
 # All the variables that are injected into templates
 package_name=
 package_version=
-binary_name=
+executable_name=
 start_command=
 user=
 group=
@@ -54,16 +54,16 @@ while [ -n "$1" ]; do
   param="$1"
   value="$2"
   case $param in
-    -b | --binary-name)
-      # HELPDOC: The name of the binary (default: 'node_deb.binary_name' then $package-name)
-      zero_check $value $param
-      binary_name="$value"
-      shift
-      ;;
     -d | --description)
       # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
       zero_check $value $param
       package_description="$value"
+      shift
+      ;;
+    -e | --executable-name)
+      # HELPDOC: The name of the executable (default: 'node_deb.executable_name' then $package-name)
+      zero_check $value $param
+      executable_name="$value"
       shift
       ;;
     -g | --group)
@@ -163,11 +163,11 @@ set_package_version() {
   fi
 }
 
-set_binary_name() {
-  if [ -z "$binary_name" ]; then
-    binary_name=`jq -r '.node_deb.binary_name' package.json`
-    if [[ "$binary_name" == 'null' ]]; then
-      binary_name="$package_name"
+set_executable_name() {
+  if [ -z "$executable_name" ]; then
+    executable_name=`jq -r '.node_deb.executable_name' package.json`
+    if [[ "$executable_name" == 'null' ]]; then
+      executable_name="$package_name"
     fi
   fi
 }
@@ -215,7 +215,7 @@ set_package_name
 set_package_version
 set_package_description
 set_package_maintainer
-set_binary_name
+set_executable_name
 set_start_command
 set_user
 set_group
@@ -263,12 +263,12 @@ replace_vars "$node_deb_dir/templates/postinst" "$deb_dir/DEBIAN/postinst"
 replace_vars "$node_deb_dir/templates/postrm" "$deb_dir/DEBIAN/postrm"
 replace_vars "$node_deb_dir/templates/prerm" "$deb_dir/DEBIAN/prerm"
 replace_vars "$node_deb_dir/templates/init.conf" "$deb_dir/etc/init/$package_name.conf"
-replace_vars "$node_deb_dir/templates/binary" "$deb_dir/usr/share/$package_name/bin/$binary_name"
+replace_vars "$node_deb_dir/templates/executable" "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
-ln -sf "/usr/share/$node_app/bin/$binary_name" "$deb_dir/usr/bin/$binary_name"
+ln -sf "/usr/share/$node_app/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 chmod -R 0755 "$deb_dir/DEBIAN/"
-chmod -R 0755 "$deb_dir/usr/share/$package_name/bin/$binary_name"
+chmod -R 0755 "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
 find "$@" -type f -print0 | {
