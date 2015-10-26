@@ -22,7 +22,9 @@
     "deb",
     "dpkg",
     "package",
-    "packaging"
+    "packaging",
+    "upstart",
+    "systemd"
   ],
   "preferGlobal": true,
   "private": false,

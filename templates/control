@@ -1,9 +1,8 @@
-Package: ${node_deb_package_name}
-Version: ${node_deb_package_version}
+Package: {{ node_deb_package_name }}
+Version: {{ node_deb_package_version }}
 Section: base
 Priority: optional
 Architecture: all
 Depends: nodejs
-Maintainer: ${node_deb_package_maintainer}
-Description: ${node_deb_package_description}
-
+Maintainer: {{ node_deb_package_maintainer }}
+Description: {{ node_deb_package_description }}

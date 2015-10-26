@@ -17,6 +17,8 @@ readlink_() {
   echo "$(cd -P "$( dirname "$src" )" && pwd)"
 }
 
+### INITIALIZE ###
+
 node_deb_dir=`readlink_ $0`
 
 # All the variables that are injected into templates
@@ -28,10 +30,12 @@ user=
 group=
 package_description=
 package_maintainer=
+node_deb_version=`jq -r '.version' "$node_deb_dir/package.json"`
 
 # Other variables
 change_log=
 files=
+init='auto'
 no_delete_temp=0
 no_md5sums=0
 
@@ -77,6 +81,18 @@ while [ -n "$1" ]; do
       usage
       exit 0
       ;;
+    -i | --init)
+      # HELPDOC: Init script type {auto, none}. 'auto' chooses upstart or systemd depending on your distro during the postinst step. 'none' makes no symlink to an init script. (default: auto)
+      zero_check $value $param
+      case $value in
+        auto|none)
+          :
+          ;;
+        *)
+          die "'$value' is not a valid choice for the init system"
+      esac
+      shift
+      ;;
     -m | --maintainer)
       # HELPDOC: The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
       zero_check $value $param
@@ -121,6 +137,8 @@ while [ -n "$1" ]; do
   esac
   shift
 done
+
+### VALIDATION ###
 
 if [ -z "$1 " ]; then
   die 'You must pick at least one file or directory to add to the Debian package'
@@ -230,12 +248,16 @@ finish() {
 
 trap "finish" EXIT
 
+### BUILD ###
+
 if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
 mkdir -p "$deb_dir/DEBIAN"
 mkdir -p "$deb_dir/etc/$package_name"
 mkdir -p "$deb_dir/etc/init"
+mkdir -p "$deb_dir/etc/systemd/system"
 mkdir -p "$deb_dir/usr/share/$package_name/bin"
+mkdir -p "$deb_dir/usr/share/$package_name/init"
 mkdir -p "$deb_dir/usr/bin"
 
 escape() {
@@ -247,14 +269,16 @@ replace_vars() {
   local target_file="$2"
 
   sed < $file \
-    -e "s/\${node_deb_package_name}/$(escape $package_name)/g" \
-    -e "s/\${node_deb_app_command}/$(escape $app_command)/g" \
-    -e "s/\${node_deb_package_version}/$(escape $package_version)/g" \
-    -e "s/\${node_deb_start_command}/$(escape $start_command)/g" \
-    -e "s/\${node_deb_package_description}/$(escape $package_description)/g" \
-    -e "s/\${node_deb_group}/$(escape $group)/g" \
-    -e "s/\${node_deb_package_maintainer}/$(escape $package_maintainer)/g" \
-    -e "s/\${node_deb_user}/$(escape $user)/g" \
+    -e "s/{{ node_deb_package_name }}/$(escape $package_name)/g" \
+    -e "s/{{ node_deb_app_command }}/$(escape $app_command)/g" \
+    -e "s/{{ node_deb_executable_name }}/$(escape $executable_name)/g" \
+    -e "s/{{ node_deb_package_version }}/$(escape $package_version)/g" \
+    -e "s/{{ node_deb_start_command }}/$(escape $start_command)/g" \
+    -e "s/{{ node_deb_package_description }}/$(escape $package_description)/g" \
+    -e "s/{{ node_deb_group }}/$(escape $group)/g" \
+    -e "s/{{ node_deb_package_maintainer }}/$(escape $package_maintainer)/g" \
+    -e "s/{{ node_deb_user }}/$(escape $user)/g" \
+    -e "s/{{ node_deb_version }}/$(escape $node_deb_version)/g" \
     > $target_file
 }
 
@@ -262,7 +286,8 @@ replace_vars "$node_deb_dir/templates/control" "$deb_dir/DEBIAN/control"
 replace_vars "$node_deb_dir/templates/postinst" "$deb_dir/DEBIAN/postinst"
 replace_vars "$node_deb_dir/templates/postrm" "$deb_dir/DEBIAN/postrm"
 replace_vars "$node_deb_dir/templates/prerm" "$deb_dir/DEBIAN/prerm"
-replace_vars "$node_deb_dir/templates/init.conf" "$deb_dir/etc/init/$package_name.conf"
+replace_vars "$node_deb_dir/templates/upstart.conf" "$deb_dir/etc/init/$package_name.conf"
+replace_vars "$node_deb_dir/templates/systemd.service" "$deb_dir/etc/systemd/system/$package_name.service"
 replace_vars "$node_deb_dir/templates/executable" "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
 ln -sf "/usr/share/$node_app/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
