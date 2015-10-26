@@ -8,11 +8,20 @@
   },
   "node_deb": {
     "start_command": "/bin/true",
-    "package_name": "overriden-package-name",
+    "package_name": "overridden-package-name",
+    "executable_name": "overridden-executable-name",
     "version": "0.1.1",
-    "user": "overriden-user",
-    "group": "overriden-group",
-    "description": "overriden description",
-    "maintainer": "overriden maintainer"
+    "user": "overridden-user",
+    "group": "overridden-group",
+    "description": "overridden description",
+    "maintainer": "overridden maintainer",
+    "templates": {
+      "executable": "templates/executable",
+      "postinst": "templates/postinst",
+      "postrm": "templates/postrm",
+      "prerm": "templates/prerm",
+      "systemd_service": "templates/systemd.service",
+      "upstart_conf": "templates/upstart.conf"
+    }
   }
 }
