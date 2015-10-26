@@ -60,8 +60,9 @@ You will get:
 
 On install, you will get.
 - An executable named `some-app`
+  - That starts the app with the command `/usr/bin/node app.js arg1 arg2 arg3`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
-  - Script starts the app with the command `/usr/bin/node app.js arg1 arg2 arg3`
+- A `systemd` unit file installed to `/etc/systemd/system/some-app.service`
 - A Unix user `some-app`
 - A Unix group `some-app`
 
@@ -89,8 +90,9 @@ You will get:
 
 On install, you will get.
 - An executable named `some-other-app`
+  - That starts the app with the command `/usr/bin/node --harmony index.js`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
-  - Script starts the app with the command `/usr/bin/node --harmony index.js`
+- A `systemd` unit file installed to `/etc/systemd/system/some-other-app.service`
 - A Unix user `foo`
 - A Unix group `bar`
 
