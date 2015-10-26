@@ -1,7 +1,0 @@
-#!/bin/bash
-set -e
-
-cd /usr/share/${node_app}
-
-${node_app_command}
-

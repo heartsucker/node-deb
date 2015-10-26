@@ -13,9 +13,9 @@ This exists mostly as an internal tool for my company, so until there is an `0.2
 
 ## Usage
 
-`node-deb [opts] [files/dirs]`
+`node-deb [opts] -- file1 file2 ...`
 
-For the full list of options, do `node-deb` with no arguments.
+For the full list of options, run `node-deb -h`.
 
 ## Configuration
 You need to add the following to your `package.json`:
@@ -25,13 +25,18 @@ You need to add the following to your `package.json`:
   "name": "some-app",
   ...
   "node_deb": {
-    "start_script": "/usr/bin/node app.js arg1 arg2"
+    "start_command": "/usr/bin/node app.js arg1 arg2"
   }
 }
 ```
 
+### Overrides
+Command line options always override values found in the `node_deb` object in `package.json`, and values found in the `node_deb` object always override the values found in the rest of `package.json`.
+
+Examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
+
 ## Examples
-### Ex. 1
+#### Ex. 1
 `package.json`:
 
 ```json
@@ -39,12 +44,12 @@ You need to add the following to your `package.json`:
   "name": "some-app",
   "version": "1.2.3",
   "node_deb": {
-    "start_script": "/usr/bin/node app.js arg1 arg2 arg3"
+    "start_command": "/usr/bin/node app.js arg1 arg2 arg3"
   }
 }
 ```
 
-`cmd`: `node-deb app.js lib/`
+`cmd`: `node-deb -- app.js lib/`
 
 You will get:
 - A Debian package named `some-app_1.2.3_all.deb`
@@ -54,13 +59,13 @@ You will get:
     - `apt-get install some-app=1.2.3`
 
 On install, you will get.
-- A binary named `some-app`
+- An executable named `some-app`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
   - Script starts the app with the command `/usr/bin/node app.js arg1 arg2 arg3`
 - A Unix user `some-app`
 - A Unix group `some-app`
 
-### Ex. 2
+#### Ex. 2
 `package.json`:
 
 ```json
@@ -68,12 +73,12 @@ On install, you will get.
   "name": "some-other-app",
   "version": "5.0.2",
   "node_deb": {
-    "start_script": "/usr/bin/node --harmony index.js"
+    "start_command": "/usr/bin/node --harmony index.js"
   }
 }
 ```
 
-`cmd`: `node-deb -u foo -g bar -v 20150826 index.js lib/ node_modules/`
+`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ node_modules/`
 
 You will get:
 - A Debian package named `some-other-app_20150826_all.deb`
@@ -83,11 +88,14 @@ You will get:
     - `apt-get install some-other-app=20150826`
 
 On install, you will get.
-- A binary named `some-other-app`
+- An executable named `some-other-app`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
   - Script starts the app with the command `/usr/bin/node --harmony index.js`
 - A Unix user `foo`
 - A Unix group `bar`
+
+#### &c.
+More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
 ## Requirements
 - `dpkg`

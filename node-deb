@@ -17,117 +17,268 @@ readlink_() {
   echo "$(cd -P "$( dirname "$src" )" && pwd)"
 }
 
+### INITIALIZE ###
+
 node_deb_dir=`readlink_ $0`
 
 # All the variables that are injected into templates
-node_app=
-node_app_command=
-node_app_version=
-node_binary=
-node_description=
-node_group=
-node_maintainer=
-node_user=
+package_name=
+package_version=
+executable_name=
+start_command=
+user=
+group=
+package_description=
+package_maintainer=
+node_deb_version=`jq -r '.version' "$node_deb_dir/package.json"`
 
 # Other variables
-no_delete=0
+change_log=
+files=
+init='auto'
+no_delete_temp=0
+no_md5sums=0
 
-while getopts "b:g:Nu:v:" opt; do
-  case $opt in
-    b)
-      node_binary=$OPTARG
+usage() {
+  # Local var because of grep
+  local helpdoc='HELP'
+  local helpdoc+='DOC'
+  echo 'Usage: node-deb [opts] -- file1 file2 ...'
+  echo 'Opts:'
+  grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
+}
+
+zero_check() {
+  if [ -z "$1" ]; then
+    die "Cannot pass zero length string to option $2"
+  fi
+}
+
+while [ -n "$1" ]; do
+  param="$1"
+  value="$2"
+  case $param in
+    -d | --description)
+      # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
+      zero_check $value $param
+      package_description="$value"
+      shift
       ;;
-    g)
-      node_group=$OPTARG
+    -e | --executable-name)
+      # HELPDOC: The name of the executable (default: 'node_deb.executable_name' then $package-name)
+      zero_check $value $param
+      executable_name="$value"
+      shift
       ;;
-    N)
-      no_delete=1
+    -g | --group)
+      # HELPDOC:  The Unix group the process will run as (default: 'node_deb.group' then $user)
+      zero_check $value $param
+      group="$value"
+      shift
       ;;
-    u)
-      node_user=$OPTARG
+    -h | --help)
+      # HELPDOC: Display this message and exit
+      usage
+      exit 0
       ;;
-    v)
-      node_app_version=$OPTARG
+    -i | --init)
+      # HELPDOC: Init script type {auto, none}. 'auto' chooses upstart or systemd depending on your distro during the postinst step. 'none' makes no symlink to an init script. (default: auto)
+      zero_check $value $param
+      case $value in
+        auto|none)
+          :
+          ;;
+        *)
+          die "'$value' is not a valid choice for the init system"
+      esac
+      shift
       ;;
-    \?)
-      cat <<-EOF >&2
-			Valid options:
-			-b <binary name> (default app_name)
-			-g <group for user processes run as> (default app_name)
-			-N 'no delete'; do not delete the temporary directory on exit (success or failure)
-			-u <user to run processes as> (default app_name)
-			-v <version> (default 'version' from package.json)
-			EOF
+    -m | --maintainer)
+      # HELPDOC: The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
+      zero_check $value $param
+      package_maintainer="$value"
+      shift
+      ;;
+    -n | --package-name)
+      # HELPDOC: The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
+      zero_check $value $param
+      package_name="$value"
+      shift
+      ;;
+    --no-delete-temp)
+      # HELPDOC: Do not delete temp directory used to build Debian package
+      no_delete_temp=1
+      ;;
+    --no-md5sums)
+      # HELPDOC: Do not calculate md5sums for DEBIAN directory
+      no_md5sums=1
+      ;;
+    -u | --user)
+      # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' then $package-name)
+      zero_check $value $param
+      user="$value"
+      shift
+      ;;
+    -v | --version)
+      # HELPDOC: The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
+      zero_check $value $param
+      package_version="$value"
+      shift
+      ;;
+    --)
+      # HELPDOC: Delimiter separating options from files and directories
+      shift
+      break
+      ;;
+    *)
+      echo "Invalid option: $param" >&2
+      usage >&2
       exit 1
-      ;;
   esac
+  shift
 done
 
-shift $(expr $OPTIND - 1)
+### VALIDATION ###
 
-: ${1:?'You must pick at least one directory to add to the Debian package'}
+if [ -z "$1 " ]; then
+  die 'You must pick at least one file or directory to add to the Debian package'
+fi
 
-for file_or_dir in "$@"; do
-  if ! [ -e "$file_or_dir" ]; then
-    die "File '$file_or_dir' does not exist. Aborting."
+for file in $files; do
+  if ! [ -e $file ]; then
+    die "File does not exist: '$file'. Aborting"
   fi
 done
 
-node_app=`jq -r '.name' package.json`
-if [ "$node_app" == 'null' ]; then echo 'Your package.json must have element "name"' >&2 && exit 1; fi
+set_package_name() {
+  if [ -z "$package_name" ]; then
+    package_name=`jq -r '.node_deb.package_name' package.json`
+    if [[ "$package_name" == 'null' ]]; then
+      package_name=`jq -r '.name' package.json`
+      if [ "$package_name" == 'null' ]; then 
+        die 'If no override is provided, your package.json must have element "node_deb.package_name" or "name"'
+      fi
+    fi
+  fi
+}
 
-node_app_command=`jq -r '.node_deb.start_script' package.json`
-if [ "$node_app_command" == 'null' ]; then echo 'Your package.json must have element "node_deb.start_script"' >&2 && exit 1; fi
+set_start_command() {
+  start_command=`jq -r '.node_deb.start_command' package.json`
+  if [ "$start_command" == 'null' ]; then
+    die 'Your package.json must have element "node_deb.start_command"'
+  fi
+}
 
-if [ -z $node_app_version ]; then
-  node_app_version=`jq -r '.["version"]' package.json`
-  if [ "$node_app_version" == 'null' ]; then echo 'If no override is provided, your package.json must have element "version"' >&2 && exit 1; fi
-fi
+set_package_version() {
+  if [ -z "$package_version" ]; then
+    package_version=`jq -r '.node_deb.version' package.json`
+    if [[ "$package_version" == 'null' ]]; then
+      package_version=`jq -r '.version' package.json`
+      if [ "$package_version" == 'null' ]; then
+        die 'If no override is provided, your package.json must have element "node_deb.package_version" "version"'
+      fi
+    fi
+  fi
+}
 
-node_description=`jq -r '.["description"]' package.json`
-if [ "$node_description" == 'null' ]; then echo 'Your package.json must have element "description"' >&2 && exit 1; fi
+set_executable_name() {
+  if [ -z "$executable_name" ]; then
+    executable_name=`jq -r '.node_deb.executable_name' package.json`
+    if [[ "$executable_name" == 'null' ]]; then
+      executable_name="$package_name"
+    fi
+  fi
+}
 
-node_maintainer=`jq -r '.["author"]' package.json`
+set_user() {
+  if [ -z "$user" ]; then
+    user=`jq -r '.node_deb.user' package.json`
+    if [[ "$user" == 'null' ]]; then
+      user="$package_name"
+    fi
+  fi
+}
 
-: ${node_binary:=$node_app}
-: ${node_group:=$node_app}
-: ${node_user:=$node_app}
+set_group() {
+  if [ -z "$group" ]; then
+    group=`jq -r '.node_deb.group' package.json`
+    if [[ "$group" == 'null' ]]; then
+      group="$user"
+    fi
+  fi
+}
 
-deb_dir="${node_app}_${node_app_version}_all"
+set_package_description() {
+  if [ -z "$package_description" ]; then
+    package_description=`jq -r '.node_deb.description' package.json`
+    if [[ "$package_description" == 'null' ]]; then
+      package_description=`jq -r '.description' package.json`
+      if [[ "$package_description" == null ]]; then
+        die 'If no override is provided, your package.json must have element "node_deb.package_description" or "description"'
+      fi
+    fi
+  fi
+}
+
+set_package_maintainer() {
+  if [ -z "$package_maintainer" ]; then
+    package_maintainer=`jq -r '.node_deb.maintainer' package.json`
+    if [[ "$package_maintainer" == 'null' ]]; then
+      package_maintainer=`jq -r '.author' package.json`
+    fi
+  fi
+}
+
+set_package_name
+set_package_version
+set_package_description
+set_package_maintainer
+set_executable_name
+set_start_command
+set_user
+set_group
+
+deb_dir="${package_name}_${package_version}_all"
 
 finish() {
-  if [ $no_delete -ne 1 ]; then
+  if [ $no_delete_temp -ne 1 ]; then
     rm -rf "$deb_dir"
   fi
 }
 
 trap "finish" EXIT
 
+### BUILD ###
+
 if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
 mkdir -p "$deb_dir/DEBIAN"
-mkdir -p "$deb_dir/etc/$node_app"
+mkdir -p "$deb_dir/etc/$package_name"
 mkdir -p "$deb_dir/etc/init"
-mkdir -p "$deb_dir/usr/share/$node_app/bin"
+mkdir -p "$deb_dir/etc/systemd/system"
+mkdir -p "$deb_dir/usr/share/$package_name/bin"
+mkdir -p "$deb_dir/usr/share/$package_name/init"
 mkdir -p "$deb_dir/usr/bin"
 
 escape() {
-  echo $(echo $@ | sed -e 's/[]\/$*.^|[]/\\&/g')
+  sed -e 's/[]\/$*.^|[]/\\&/g' <<< "$@"
 }
 
 replace_vars() {
-  local file=$1
-  local target_file=$2
+  local file="$1"
+  local target_file="$2"
 
-  cat $file | sed \
-    -e "s/\${node_app}/$(escape $node_app)/g" \
-    -e "s/\${node_app_command}/$(escape $node_app_command)/g" \
-    -e "s/\${node_app_version}/$(escape $node_app_version)/g" \
-    -e "s/\${node_binary}/$(escape $node_binary)/g" \
-    -e "s/\${node_description}/$(escape $node_description)/g" \
-    -e "s/\${node_group}/$(escape $node_group)/g" \
-    -e "s/\${node_maintainer}/$(escape $node_maintainer)/g" \
-    -e "s/\${node_user}/$(escape $node_user)/g" \
+  sed < $file \
+    -e "s/{{ node_deb_package_name }}/$(escape $package_name)/g" \
+    -e "s/{{ node_deb_app_command }}/$(escape $app_command)/g" \
+    -e "s/{{ node_deb_executable_name }}/$(escape $executable_name)/g" \
+    -e "s/{{ node_deb_package_version }}/$(escape $package_version)/g" \
+    -e "s/{{ node_deb_start_command }}/$(escape $start_command)/g" \
+    -e "s/{{ node_deb_package_description }}/$(escape $package_description)/g" \
+    -e "s/{{ node_deb_group }}/$(escape $group)/g" \
+    -e "s/{{ node_deb_package_maintainer }}/$(escape $package_maintainer)/g" \
+    -e "s/{{ node_deb_user }}/$(escape $user)/g" \
+    -e "s/{{ node_deb_version }}/$(escape $node_deb_version)/g" \
     > $target_file
 }
 
@@ -135,18 +286,19 @@ replace_vars "$node_deb_dir/templates/control" "$deb_dir/DEBIAN/control"
 replace_vars "$node_deb_dir/templates/postinst" "$deb_dir/DEBIAN/postinst"
 replace_vars "$node_deb_dir/templates/postrm" "$deb_dir/DEBIAN/postrm"
 replace_vars "$node_deb_dir/templates/prerm" "$deb_dir/DEBIAN/prerm"
-replace_vars "$node_deb_dir/templates/init.conf" "$deb_dir/etc/init/$node_app.conf"
-replace_vars "$node_deb_dir/templates/binary" "$deb_dir/usr/share/$node_app/bin/$node_binary"
+replace_vars "$node_deb_dir/templates/upstart.conf" "$deb_dir/etc/init/$package_name.conf"
+replace_vars "$node_deb_dir/templates/systemd.service" "$deb_dir/etc/systemd/system/$package_name.service"
+replace_vars "$node_deb_dir/templates/executable" "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
-ln -sf "/usr/share/$node_app/bin/$node_binary" "$deb_dir/usr/bin/$node_binary"
+ln -sf "/usr/share/$node_app/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 chmod -R 0755 "$deb_dir/DEBIAN/"
-chmod -R 0755 "$deb_dir/usr/share/$node_app/bin/$node_binary"
+chmod -R 0755 "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
 find "$@" -type f -print0 | {
   while IFS= read -r -d '' file; do
-    dir="$deb_dir/usr/share/$node_app/$(dirname "$file")"
+    dir="$deb_dir/usr/share/$package_name/$(dirname "$file")"
     if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
     cp "$file" "$dir"
   done
@@ -172,10 +324,12 @@ write_md5sum() {
 }
 
 # Calculate md5sums
-find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
+if [ "$no_md5sums" -eq 0 ]; then
+  find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
   while IFS= read -r -d '' file; do
-    write_md5sum $file
+    write_md5sum "$file"
   done
 }
+fi
 
 dpkg-deb --build "$deb_dir"
