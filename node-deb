@@ -45,14 +45,17 @@ usage() {
   local helpdoc='HELP'
   local helpdoc+='DOC'
 
-  local temp_vars='TEMPLATE'
-  local temp_vars+='_VAR'
-
   echo 'Usage: node-deb [opts] -- file1 file2 ...'
   echo 'Opts:'
   grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
-  echo 'Template varaibles:'
-  grep "$temp_vars" "$node_deb_dir/node-deb" | sed -e 's:\(.*{{ \)\([a-z_]*\)\( }}.*\):  \2:g' | sort
+}
+
+template_variables() {
+  # Local var because of grep
+  local temp_vars='TEMPLATE'
+  local temp_vars+='_VAR'
+
+  grep "$temp_vars" "$node_deb_dir/node-deb" | sed -e 's:\(.*{{ \)\([a-z_]*\)\( }}.*\):\2:g' | sort
 }
 
 cat_template() {
@@ -113,6 +116,11 @@ while [ -n "$1" ]; do
     --list-templates)
       # HELPDOC: Print a list of available templates then exit
       find "$node_deb_dir/templates" -type f -maxdepth 1 | awk -F '/' '{ print $NF }' | sort
+      exit 0
+      ;;
+    --list-template-variables)
+      # HELPDOC: Print a list of variales available to templates then exit
+      template_variables
       exit 0
       ;;
     -m | --maintainer)
