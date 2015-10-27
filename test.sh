@@ -40,7 +40,7 @@ usage() {
 }
 
 vagrant_clean() {
-  vagrant destroy -f upstart systemd
+  vagrant destroy -f upstart systemd no-init
 }
 
 failures=0
@@ -102,7 +102,7 @@ test-simple-project() {
   echo "Running tests for simple-project"
   cd "$_pwd/test/simple-project"
   local is_success=1
-  output=`../../node-deb --no-delete-temp -- app.js lib/`
+  local output=`../../node-deb --no-delete-temp -- app.js lib/`
 
   if [ "$?" -ne 0 ]; then
     local is_success=0
@@ -136,13 +136,13 @@ test-whitespace-project() {
 
   local is_success=1
 
-  output=`../../node-deb -- 'whitespace file.js' 'whitespace folder' 2>&1`
+  local output=`../../node-deb -- 'whitespace file.js' 'whitespace folder' 2>&1`
   if [ "$?" -ne 0 ]; then
     local is_success=0
   fi
 
-  output+='\n'
-  output+=`../../node-deb --  whitespace\ file.js whitespace\ folder 2>&1`
+  local output+='\n'
+  local output+=`../../node-deb --  whitespace\ file.js whitespace\ folder 2>&1`
   if [ "$?" -ne 0 ]; then
     local is_success=0
   fi
@@ -165,16 +165,16 @@ test-node-deb-override-project() {
   echo "Running tests for node-deb-override-project"
   cd "$_pwd/test/node-deb-override-project"
   local is_success=1
-  output=`../../node-deb --no-delete-temp -- app.js lib/`
+  local output=`../../node-deb --no-delete-temp -- app.js lib/`
 
   if [ "$?" -ne 0 ]; then
     local is_success=0
     err "$output"
   fi
 
-  local output_dir='overriden-package-name_0.1.1_all/'
+  local output_dir='overridden-package-name_0.1.1_all/'
 
-  if ! grep -q 'Package: overriden-package-name' "$output_dir/DEBIAN/control"; then
+  if ! grep -q 'Package: overridden-package-name' "$output_dir/DEBIAN/control"; then
     err 'Package name was wrong'
     local is_success=0
   fi
@@ -184,13 +184,43 @@ test-node-deb-override-project() {
     local is_success=0
   fi
 
-  if ! grep -q 'Maintainer: overriden maintainer' "$output_dir/DEBIAN/control"; then
+  if ! grep -q 'Maintainer: overridden maintainer' "$output_dir/DEBIAN/control"; then
     err 'Package maintainer was wrong'
     local is_success=0
   fi
 
-  if ! grep -q 'Description: overriden description' "$output_dir/DEBIAN/control"; then
+  if ! grep -q 'Description: overridden description' "$output_dir/DEBIAN/control"; then
     err 'Package description was wrong'
+    local is_success=0
+  fi
+
+  if ! grep -q 'POSTINST_OVERRIDE' "$output_dir/DEBIAN/postinst"; then
+    err 'postinst template override was wrong'
+    local is_success=0
+  fi
+
+  if ! grep -q 'POSTRM_OVERRIDE' "$output_dir/DEBIAN/postrm"; then
+    err 'postrm template override was wrong'
+    local is_success=0
+  fi
+
+  if ! grep -q 'PRERM_OVERRIDE' "$output_dir/DEBIAN/prerm"; then
+    err 'prerm template override was wrong'
+    local is_success=0
+  fi
+
+  if ! grep -q 'SYSTEMD_SERVICE_OVERRIDE' "$output_dir/etc/systemd/system/overridden-package-name.service"; then
+    err 'systemd.service template override was wrong'
+    local is_success=0
+  fi
+
+  if ! grep -q 'UPSTART_CONF_OVERRIDE' "$output_dir/etc/init/overridden-package-name.conf"; then
+    err 'upstart.conf template override was wrong'
+    local is_success=0
+  fi
+
+  if ! grep -q 'EXECUTABLE_OVERRIDE' "$output_dir/usr/share/overridden-package-name/bin/overridden-executable-name"; then
+    err 'executable template override was wrong'
     local is_success=0
   fi
 
@@ -207,13 +237,13 @@ test-commandline-override-project() {
   echo "Running tests for commandline-override-project"
   cd "$_pwd/test/commandline-override-project"
   local is_success=1
-  output=`../../node-deb --no-delete-temp \
-    -n overriden-package-name \
+  local output=`../../node-deb --no-delete-temp \
+    -n overridden-package-name \
     -v 0.1.1 \
-    -u overriden-user \
-    -g overriden-group \
-    -m 'overriden maintainer' \
-    -d 'overriden description' \
+    -u overridden-user \
+    -g overridden-group \
+    -m 'overridden maintainer' \
+    -d 'overridden description' \
     -- app.js lib/`
 
   if [ "$?" -ne 0 ]; then
@@ -221,9 +251,9 @@ test-commandline-override-project() {
     err "$output"
   fi
 
-  local output_dir='overriden-package-name_0.1.1_all/'
+  local output_dir='overridden-package-name_0.1.1_all/'
 
-  if ! grep -q 'Package: overriden-package-name' "$output_dir/DEBIAN/control"; then
+  if ! grep -q 'Package: overridden-package-name' "$output_dir/DEBIAN/control"; then
     err 'Package name was wrong'
     local is_success=0
   fi
@@ -233,12 +263,12 @@ test-commandline-override-project() {
     local is_success=0
   fi
 
-  if ! grep -q 'Maintainer: overriden maintainer' "$output_dir/DEBIAN/control"; then
+  if ! grep -q 'Maintainer: overridden maintainer' "$output_dir/DEBIAN/control"; then
     err 'Package maintainer was wrong'
     local is_success=0
   fi
 
-  if ! grep -q 'Description: overriden description' "$output_dir/DEBIAN/control"; then
+  if ! grep -q 'Description: overridden description' "$output_dir/DEBIAN/control"; then
     err 'Package description was wrong'
     local is_success=0
   fi
@@ -290,6 +320,23 @@ test-systemd-project() {
   fi
 }
 
+test-no-init-project() {
+  echo 'Running tests for no-init-project'
+  local target_file='/var/log/no-init-project/TEST_OUTPUT'
+
+  vagrant up --provision no-init && \
+  sleep 3 && \
+  vagrant ssh no-init -c "! [ -f '$target_file' ]"
+
+  if [ "$?" -ne 0 ]; then
+    err 'Failure on checking file absence for target host'
+    : $((failures++))
+  else
+    vagrant destroy -f no-init
+    echo 'Success for no-init-project'
+  fi
+}
+
 if [ -n "$single_project_test" ]; then
   echo '--------------------------'
   eval "$single_project_test"
@@ -307,6 +354,8 @@ else
   test-upstart-project
   echo '--------------------------'
   test-systemd-project
+  echo '--------------------------'
+  test-no-init-project
   echo '--------------------------'
 fi
 
