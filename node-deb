@@ -44,9 +44,25 @@ usage() {
   # Local var because of grep
   local helpdoc='HELP'
   local helpdoc+='DOC'
+
+  local temp_vars='TEMPLATE'
+  local temp_vars+='_VAR'
+
   echo 'Usage: node-deb [opts] -- file1 file2 ...'
   echo 'Opts:'
   grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
+  echo 'Template varaibles:'
+  grep "$temp_vars" "$node_deb_dir/node-deb" | sed -e 's:\(.*{{ \)\([a-z_]*\)\( }}.*\):  \2:g' | sort
+}
+
+cat_template() {
+  local template="$1"
+  local file=$(find "$node_deb_dir/templates" -name "$template" -type f -maxdepth 1)
+  if [ -z "$file" ]; then
+    die "$template is not a valid template"
+  else
+    cat "$file"
+  fi
 }
 
 zero_check() {
@@ -59,6 +75,12 @@ while [ -n "$1" ]; do
   param="$1"
   value="$2"
   case $param in
+    --cat-template)
+      # HELPDOC: Print the contents of a given template then exit
+      zero_check $value $param
+      cat_template $value
+      exit 0
+      ;;
     -d | --description)
       # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
       zero_check $value $param
@@ -87,6 +109,11 @@ while [ -n "$1" ]; do
       zero_check $value $param
       init="$value"
       shift
+      ;;
+    --list-templates)
+      # HELPDOC: Print a list of available templates then exit
+      find "$node_deb_dir/templates" -type f -maxdepth 1 | awk -F '/' '{ print $NF }' | sort
+      exit 0
       ;;
     -m | --maintainer)
       # HELPDOC: The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
@@ -138,13 +165,13 @@ while [ -n "$1" ]; do
       template_prerm="$param"
       shift
       ;;
-    --template-systemd)
+    --template-systemd-service)
       # HELPDOC: Override systemd unit template (default: 'node_deb.templates.systemd_service' from package.json then built-in)
       zero_check $value $param
       template_systemd="$param"
       shift
       ;;
-    --template-upstart)
+    --template-upstart-conf)
       # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
       zero_check $value $param
       template_upstart="$param"
@@ -364,17 +391,17 @@ replace_vars() {
   local target_file="$2"
 
   sed < $file \
-    -e "s/{{ node_deb_package_name }}/$(escape $package_name)/g" \
-    -e "s/{{ node_deb_app_command }}/$(escape $app_command)/g" \
-    -e "s/{{ node_deb_executable_name }}/$(escape $executable_name)/g" \
-    -e "s/{{ node_deb_package_version }}/$(escape $package_version)/g" \
-    -e "s/{{ node_deb_start_command }}/$(escape $start_command)/g" \
-    -e "s/{{ node_deb_package_description }}/$(escape $package_description)/g" \
-    -e "s/{{ node_deb_group }}/$(escape $group)/g" \
-    -e "s/{{ node_deb_package_maintainer }}/$(escape $package_maintainer)/g" \
-    -e "s/{{ node_deb_user }}/$(escape $user)/g" \
-    -e "s/{{ node_deb_init }}/$(escape $init)/g" \
-    -e "s/{{ node_deb_version }}/$(escape $node_deb_version)/g" \
+    -e "s/{{ node_deb_package_name }}/$(escape $package_name)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_app_command }}/$(escape $app_command)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_executable_name }}/$(escape $executable_name)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_package_version }}/$(escape $package_version)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_start_command }}/$(escape $start_command)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_package_description }}/$(escape $package_description)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_package_maintainer }}/$(escape $package_maintainer)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_user }}/$(escape $user)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_group }}/$(escape $group)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_init }}/$(escape $init)/g" \ # TEMPLATE_VAR
+    -e "s/{{ node_deb_version }}/$(escape $node_deb_version)/g" \ # TEMPLATE_VAR
     > $target_file
 }
 
