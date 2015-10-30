@@ -10,7 +10,7 @@ die() {
 }
 
 stop_service() {
-  local service_name="$1"
+  declare -r service_name="$1"
 
   if hash service 2> /dev/null; then
     service "$service_name" stop || echo "$service_name wasn't even running!"

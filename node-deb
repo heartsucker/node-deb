@@ -8,10 +8,12 @@ die() {
 
 # beacuse OSX is shit and can't do `readlink -f`
 readlink_() {
-  local src="${BASH_SOURCE[0]}"
+  declare src="${BASH_SOURCE[0]}"
+  declare dir=
+
   while [ -h "$src" ]; do
-    local dir="$(cd -P "$( dirname "$src" )" && pwd)"
-    local src="$(readlink "$src")"
+    dir="$(cd -P "$( dirname "$src" )" && pwd)"
+    src="$(readlink "$src")"
     [[ $src != /* ]] && src="$dir/$src"
   done
   echo "$(cd -P "$( dirname "$src" )" && pwd)"
@@ -42,8 +44,8 @@ no_md5sums=0
 
 usage() {
   # Local var because of grep
-  local helpdoc='HELP'
-  local helpdoc+='DOC'
+  declare helpdoc='HELP'
+  helpdoc+='DOC'
 
   echo 'Usage: node-deb [opts] -- file1 file2 ...'
   echo 'Opts:'
@@ -51,10 +53,7 @@ usage() {
 }
 
 template_variables() {
-  # Local var because of grep
-  local temp_vars='TEMPLATE'
-  local temp_vars+='_VARS'
-
+  declare -r temp_vars='TEMPLATE_VARS'
   declare -r begin_pattern="### BEGIN $temp_vars ###"
   declare -r end_pattern="### END $temp_vars ###"
 
@@ -65,8 +64,9 @@ template_variables() {
 }
 
 cat_template() {
-  local template="$1"
-  local file=$(find "$node_deb_dir/templates" -name "$template" -type f -maxdepth 1)
+  declare -r template="$1"
+  declare -r file=$(find "$node_deb_dir/templates" -name "$template" -type f -maxdepth 1)
+
   if [ -z "$file" ]; then
     die "$template is not a valid template"
   else
@@ -83,6 +83,7 @@ zero_check() {
 while [ -n "$1" ]; do
   param="$1"
   value="$2"
+
   case $param in
     --cat-template)
       # HELPDOC: Print the contents of a given template then exit
@@ -401,8 +402,8 @@ escape() {
 }
 
 replace_vars() {
-  local file="$1"
-  local target_file="$2"
+  declare -r file="$1"
+  declare -r target_file="$2"
 
   ### BEGIN TEMPLATE_VARS ###
   sed < $file \
@@ -448,20 +449,20 @@ find "$@" -type f -print0 | {
 
 write_md5sum() {
   # Using $@ and not $1 because of files with whitespace
-  local file="$@"
+  declare file="$@"
 
   # Debian/Ubuntu
   if hash md5sum 2>/dev/null; then
-    local sum=`md5sum "$file" | cut -d ' ' -f1`
+    declare -r sum=`md5sum "$file" | cut -d ' ' -f1`
   # OSX
   elif hash md5 2>/dev/null; then
-    local sum=`md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' '`
+    declare -r sum=`md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' '`
   # Oh dear...
   else
     die 'Unable to find suitable md5 sum program'
   fi
 
-  local file=`echo $file | sed -e "s/$(escape $deb_dir)//" | sed -e 's:^\.::' -e 's:^/*::'`
+  file=`echo $file | sed -e "s/$(escape $deb_dir)//" | sed -e 's:^\.::' -e 's:^/*::'`
   echo "$sum $file" >> "$deb_dir/DEBIAN/md5sums"
 }
 

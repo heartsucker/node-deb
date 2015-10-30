@@ -10,18 +10,18 @@ die() {
 }
 
 addUser() {
-  local user="$1"
+  declare -r user="$1"
+  declare -r uid="$2"
 
-  local uid="$2"
   if [ -z "$uid" ]; then
-    local uid_flags=""
+    declare -r uid_flags=""
   else
-    local uid_flags="--uid $uid"
+    declare -r uid_flags="--uid $uid"
   fi
 
-  local group=${3:-$user}
-  local descr=${4:-No description}
-  local shell=${5:-/bin/false}
+  declare -r group=${3:-$user}
+  declare -r descr=${4:-No description}
+  declare -r shell=${5:-/bin/false}
 
   if ! getent passwd | grep -q "^$user:"; then
     echo "Creating system user: $user in $group with $descr and shell $shell"
@@ -30,12 +30,13 @@ addUser() {
 }
 
 addGroup() {
-  local group="$1"
-  local gid="$2"
+  declare -r group="$1"
+  declare -r gid="$2"
+
   if [ -z "$gid" ]; then
-    local gid_flags=""
+    declare -r gid_flags=""
   else
-    local gid_flags="--gid $gid"
+    declare -r gid_flags="--gid $gid"
   fi
 
   if ! getent group | grep -q "^$group:" ; then
@@ -45,7 +46,7 @@ addGroup() {
 }
 
 start_service () {
-  local service_name="$1"
+  declare -r service_name="$1"
 
   if hash service 2> /dev/null; then
     service "$service_name" start || echo "${service_name} could not be registered or started"
