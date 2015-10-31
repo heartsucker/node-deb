@@ -16,27 +16,26 @@ readlink_() {
     src="$(readlink "$src")"
     [[ $src != /* ]] && src="$dir/$src"
   done
-  echo "$(cd -P "$( dirname "$src" )" && pwd)"
+  cd -P "$( dirname "$src" )" && pwd
 }
 
 ### INITIALIZE ###
 
-node_deb_dir=`readlink_ $0`
+node_deb_dir=$(readlink_ $0)
 
 # All the variables that are injected into templates
 package_name=
 package_version=
 executable_name=
-start_command=`jq -r '.node_deb.start_command' package.json`
+start_command=$(jq -r '.node_deb.start_command' package.json)
 user=
 group=
 package_description=
 package_maintainer=
-node_deb_version=`jq -r '.version' "$node_deb_dir/package.json"`
+node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 # note: init is also injected
 
 # Other variables
-change_log=
 files=
 init=
 no_delete_temp=0
@@ -65,7 +64,8 @@ template_variables() {
 
 cat_template() {
   declare -r template="$1"
-  declare -r file=$(find "$node_deb_dir/templates" -name "$template" -type f -maxdepth 1)
+  declare -r file
+  file=$(find "$node_deb_dir/templates" -name "$template" -type f -maxdepth 1 | head -n 1)
 
   if [ -z "$file" ]; then
     die "$template is not a valid template"
@@ -87,25 +87,25 @@ while [ -n "$1" ]; do
   case $param in
     --cat-template)
       # HELPDOC: Print the contents of a given template then exit
-      zero_check $value $param
-      cat_template $value
+      zero_check "$value" "$param"
+      cat_template "$value"
       exit 0
       ;;
     -d | --description)
       # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
-      zero_check $value $param
+      zero_check "$value" "$param"
       package_description="$value"
       shift
       ;;
     -e | --executable-name)
       # HELPDOC: The name of the executable (default: 'node_deb.executable_name' from package.json then $package-name)
-      zero_check $value $param
+      zero_check "$value" "$param"
       executable_name="$value"
       shift
       ;;
     -g | --group)
       # HELPDOC:  The Unix group the process will run as (default: 'node_deb.group' from package.json then $user)
-      zero_check $value $param
+      zero_check "$value" "$param"
       group="$value"
       shift
       ;;
@@ -115,8 +115,8 @@ while [ -n "$1" ]; do
       exit 0
       ;;
     -i | --init)
-      # HELPDOC: Init script type {auto, none}. 'auto' chooses upstart or systemd. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
-      zero_check $value $param
+      # HELPDOC: Init script type {auto, upstart, systemd, none}. 'auto' chooses upstart or systemd. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
+      zero_check "$value" "$param"
       init="$value"
       shift
       ;;
@@ -132,13 +132,13 @@ while [ -n "$1" ]; do
       ;;
     -m | --maintainer)
       # HELPDOC: The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
-      zero_check $value $param
+      zero_check "$value" "$param"
       package_maintainer="$value"
       shift
       ;;
     -n | --package-name)
       # HELPDOC: The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
-      zero_check $value $param
+      zero_check "$value" "$param"
       package_name="$value"
       shift
       ;;
@@ -152,55 +152,55 @@ while [ -n "$1" ]; do
       ;;
     --template-control)
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
-      zero_check $value $param
+      zero_check "$value" "$param"
       template_control="$param"
       shift
       ;;
     --template-executable)
       # HELPDOC: Override executable template (default: 'node_deb.templates.executable' from package.json then built-in)
-      zero_check $value $param
+      zero_check "$value" "$param"
       template_executable="$param"
       shift
       ;;
     --template-postinst)
       # HELPDOC: Override maintainer script postinst template (default: 'node_deb.templates.postinst' from package.json then built-in)
-      zero_check $value $param
+      zero_check "$value" "$param"
       template_postinst="$param"
       shift
       ;;
     --template-postrm)
       # HELPDOC: Override maintainer script postrm template (default: 'node_deb.templates.postrm' from package.json then built-in)
-      zero_check $value $param
+      zero_check "$value" "$param"
       template_postrm="$param"
       shift
       ;;
     --template-prerm)
       # HELPDOC: Override maintainer script prerm template (default: 'node_deb.templates.prem' from package.json then built-in)
-      zero_check $value $param
+      zero_check "$value" "$param"
       template_prerm="$param"
       shift
       ;;
     --template-systemd-service)
       # HELPDOC: Override systemd unit template (default: 'node_deb.templates.systemd_service' from package.json then built-in)
-      zero_check $value $param
+      zero_check "$value" "$param"
       template_systemd="$param"
       shift
       ;;
     --template-upstart-conf)
       # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
-      zero_check $value $param
+      zero_check "$value" "$param"
       template_upstart="$param"
       shift
       ;;
     -u | --user)
       # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
-      zero_check $value $param
+      zero_check "$value" "$param"
       user="$value"
       shift
       ;;
     -v | --version)
       # HELPDOC: The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
-      zero_check $value $param
+      zero_check "$value" "$param"
       package_version="$value"
       shift
       ;;
@@ -219,7 +219,7 @@ done
 
 ### VALIDATION ###
 
-if [ -z "$1 " ]; then
+if [ -z "$1" ]; then
   die 'You must pick at least one file or directory to add to the Debian package'
 fi
 
@@ -231,9 +231,9 @@ done
 
 # Set the package name
 if [ -z "$package_name" ]; then
-  package_name=`jq -r '.node_deb.package_name' package.json`
+  package_name=$(jq -r '.node_deb.package_name' package.json)
   if [[ "$package_name" == 'null' ]]; then
-    package_name=`jq -r '.name' package.json`
+    package_name=$(jq -r '.name' package.json)
     if [ "$package_name" == 'null' ]; then
       die 'If no override is provided, your package.json must have element "node_deb.package_name" or "name"'
     fi
@@ -242,9 +242,9 @@ fi
 
 # Set the package version
 if [ -z "$package_version" ]; then
-  package_version=`jq -r '.node_deb.version' package.json`
+  package_version=$(jq -r '.node_deb.version' package.json)
   if [[ "$package_version" == 'null' ]]; then
-    package_version=`jq -r '.version' package.json`
+    package_version=$(jq -r '.version' package.json)
     if [ "$package_version" == 'null' ]; then
       die 'If no override is provided, your package.json must have element "node_deb.package_version" "version"'
     fi
@@ -253,9 +253,9 @@ fi
 
 # Set the package description
 if [ -z "$package_description" ]; then
-  package_description=`jq -r '.node_deb.description' package.json`
+  package_description=$(jq -r '.node_deb.description' package.json)
   if [[ "$package_description" == 'null' ]]; then
-    package_description=`jq -r '.description' package.json`
+    package_description=$(jq -r '.description' package.json)
     if [[ "$package_description" == null ]]; then
       die 'If no override is provided, your package.json must have element "node_deb.package_description" or "description"'
     fi
@@ -264,15 +264,15 @@ fi
 
 # Set the packge maintainer
 if [ -z "$package_maintainer" ]; then
-  package_maintainer=`jq -r '.node_deb.maintainer' package.json`
+  package_maintainer=$(jq -r '.node_deb.maintainer' package.json)
   if [[ "$package_maintainer" == 'null' ]]; then
-    package_maintainer=`jq -r '.author' package.json`
+    package_maintainer=$(jq -r '.author' package.json)
   fi
 fi
 
 # Set executable name
 if [ -z "$executable_name" ]; then
-  executable_name=`jq -r '.node_deb.executable_name' package.json`
+  executable_name=$(jq -r '.node_deb.executable_name' package.json)
   if [[ "$executable_name" == 'null' ]]; then
     executable_name="$package_name"
   fi
@@ -285,7 +285,7 @@ fi
 
 # Set unix user
 if [ -z "$user" ]; then
-  user=`jq -r '.node_deb.user' package.json`
+  user=$(jq -r '.node_deb.user' package.json)
   if [[ "$user" == 'null' ]]; then
     user="$package_name"
   fi
@@ -293,7 +293,7 @@ fi
 
 # Set unix group
 if [ -z "$group" ]; then
-  group=`jq -r '.node_deb.group' package.json`
+  group=$(jq -r '.node_deb.group' package.json)
   if [[ "$group" == 'null' ]]; then
     group="$user"
   fi
@@ -301,17 +301,21 @@ fi
 
 # Set init type
 if [ -z "$init" ]; then
-  init=`jq -r '.node_deb.init' package.json`
+  init=$(jq -r '.node_deb.init' package.json)
   if [[ "$init" == 'null' ]]; then
     init='auto'
-  elif [[ "$init" != 'auto' ]] && [[ "$init" != 'none' ]]; then
-    die "Init type must be 'auto' or 'none'"
   fi
 fi
+case $init in
+  auto|upstart|systemd|none)
+    ;;
+  *)
+    die "Invalid init type: $init. Must be 'auto', 'upstart', 'systemd', or 'none'"
+esac
 
 # Set control template
 if [ -z "$template_control" ]; then
-  temp_template_control=`jq -r '.node_deb.templates.control' package.json`
+  temp_template_control=$(jq -r '.node_deb.templates.control' package.json)
   if [[ "$temp_template_control" == 'null' ]]; then
     template_control=''
   fi
@@ -320,7 +324,7 @@ fi
 
 # Set executable template
 if [ -z "$template_executable" ]; then
-  template_executable=`jq -r '.node_deb.templates.executable' package.json`
+  template_executable=$(jq -r '.node_deb.templates.executable' package.json)
   if [[ "$template_executable" == 'null' ]]; then
     template_executable=''
   fi
@@ -329,7 +333,7 @@ fi
 
 # Set postinst template
 if [ -z "$template_postinst" ]; then
-  template_postinst=`jq -r '.node_deb.templates.postinst' package.json`
+  template_postinst=$(jq -r '.node_deb.templates.postinst' package.json)
   if [[ "$template_postinst" == 'null' ]]; then
     template_postinst=''
   fi
@@ -338,7 +342,7 @@ fi
 
 # Set postrm template
 if [ -z "$template_postrm" ]; then
-  template_postrm=`jq -r '.node_deb.templates.postrm' package.json`
+  template_postrm=$(jq -r '.node_deb.templates.postrm' package.json)
   if [[ "$template_postrm" == 'null' ]]; then
     template_postrm=''
   fi
@@ -347,7 +351,7 @@ fi
 
 # Set prerm template
 if [ -z "$template_prerm" ]; then
-  template_prerm=`jq -r '.node_deb.templates.prerm' package.json`
+  template_prerm=$(jq -r '.node_deb.templates.prerm' package.json)
   if [[ "$template_prerm" == 'null' ]]; then
     template_prerm=''
   fi
@@ -356,7 +360,7 @@ fi
 
 # Set systemd unit template
 if [ -z "$template_systemd" ]; then
-  template_systemd=`jq -r '.node_deb.templates.systemd_service' package.json`
+  template_systemd=$(jq -r '.node_deb.templates.systemd_service' package.json)
   if [[ "$template_systemd" == 'null' ]]; then
     template_systemd=''
   fi
@@ -365,7 +369,7 @@ fi
 
 # Set upstart conf template
 if [ -z "$template_upstart" ]; then
-  template_upstart=`jq -r '.node_deb.templates.upstart_conf' package.json`
+  template_upstart=$(jq -r '.node_deb.templates.upstart_conf' package.json)
   if [[ "$template_upstart" == 'null' ]]; then
     template_upstart=''
   fi
@@ -388,12 +392,14 @@ if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
 mkdir -p "$deb_dir/DEBIAN"
 mkdir -p "$deb_dir/etc/$package_name"
-mkdir -p "$deb_dir/etc/init"
 mkdir -p "$deb_dir/usr/share/$package_name/bin"
 mkdir -p "$deb_dir/usr/bin"
 
-if [ "$init" == 'auto' ]; then
-  mkdir -p "$deb_dir/usr/share/$package_name/init"
+if [[ "$init" == 'auto' ]] || [[ "$init" == 'upstart' ]]; then
+  mkdir -p "$deb_dir/etc/init"
+fi
+
+if [[ "$init" == 'auto' ]] || [[ "$init" == 'systemd' ]]; then
   mkdir -p "$deb_dir/etc/systemd/system"
 fi
 
@@ -406,7 +412,7 @@ replace_vars() {
   declare -r target_file="$2"
 
   ### BEGIN TEMPLATE_VARS ###
-  sed < $file \
+  sed < "$file" \
     -e "s/{{ node_deb_package_name }}/$(escape $package_name)/g" \
     -e "s/{{ node_deb_app_command }}/$(escape $app_command)/g" \
     -e "s/{{ node_deb_executable_name }}/$(escape $executable_name)/g" \
@@ -418,7 +424,7 @@ replace_vars() {
     -e "s/{{ node_deb_group }}/$(escape $group)/g" \
     -e "s/{{ node_deb_init }}/$(escape $init)/g" \
     -e "s/{{ node_deb_version }}/$(escape $node_deb_version)/g" \
-  > $target_file
+  > "$target_file"
   ### END TEMPLATE_VARS ###
 }
 
@@ -428,12 +434,15 @@ replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm"
 replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm"
 replace_vars "$template_executable" "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
-if [ "$init" == 'auto' ]; then
+if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then
   replace_vars "$template_upstart" "$deb_dir/etc/init/$package_name.conf"
+fi
+
+if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
   replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service"
 fi
 
-ln -sf "/usr/share/$node_app/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
+ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 chmod -R 0755 "$deb_dir/DEBIAN/"
 chmod -R 0755 "$deb_dir/usr/share/$package_name/bin/$executable_name"
@@ -453,16 +462,16 @@ write_md5sum() {
 
   # Debian/Ubuntu
   if hash md5sum 2>/dev/null; then
-    declare -r sum=`md5sum "$file" | cut -d ' ' -f1`
+    declare -r sum=$(md5sum "$file" | cut -d ' ' -f1)
   # OSX
   elif hash md5 2>/dev/null; then
-    declare -r sum=`md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' '`
+    declare -r sum=$(md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' ')
   # Oh dear...
   else
     die 'Unable to find suitable md5 sum program'
   fi
 
-  file=`echo $file | sed -e "s/$(escape $deb_dir)//" | sed -e 's:^\.::' -e 's:^/*::'`
+  file=$(echo "$file" | sed -e "s/$(escape "$deb_dir")//" | sed -e 's:^\.::' -e 's:^/*::')
   echo "$sum $file" >> "$deb_dir/DEBIAN/md5sums"
 }
 

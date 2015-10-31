@@ -9,10 +9,10 @@ readlink_() {
     src="$(readlink "$src")"
     [[ $src != /* ]] && src="$dir/$src"
   done
-  echo "$(cd -P "$( dirname "$src" )" && pwd)"
+  cd -P "$( dirname "$src" )" && pwd
 }
 
-_pwd=`readlink_ $0`
+_pwd=$(readlink_ "$0")
 
 err() {
   echo "$@" >&2
@@ -24,9 +24,10 @@ die() {
 }
 
 finish() {
-  cd "$_pwd"
+  cd "$_pwd" || die 'cd error'
+
   if [ "$no_clean" -eq 0 ]; then
-    find test -name *.deb -type f | xargs rm -f
+    find test -name './*.deb' -type f | xargs rm -f
   fi
 }
 
@@ -45,8 +46,8 @@ vagrant_clean() {
   vagrant destroy -f upstart systemd no-init
 }
 
-failures=0
-no_clean=0
+declare -i failures=0
+declare -i no_clean=0
 single_project_test=
 
 while [ -n "$1" ]; do
@@ -96,16 +97,17 @@ while [ -n "$1" ]; do
   shift
 done
 
-cd "$_pwd"
+cd "$_pwd" || die 'cd error'
 
 ### TESTS ###
 
 test-simple-project() {
   echo "Running tests for simple-project"
-  cd "$_pwd/test/simple-project"
+  cd "$_pwd/test/simple-project" || die 'cd error'
 
   declare -i is_success=1
-  declare output=`../../node-deb --no-delete-temp -- app.js lib/`
+  declare output
+  output=$(../../node-deb --no-delete-temp -- app.js lib/)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -135,17 +137,19 @@ test-simple-project() {
 
 test-whitespace-project() {
   echo "Running tests for whitespace-project"
-  cd "$_pwd/test/whitespace-project"
+  cd "$_pwd/test/whitespace-project" || die 'cd error'
 
   declare -i is_success=1
 
-  declare output=`../../node-deb -- 'whitespace file.js' 'whitespace folder' 2>&1`
+  declare output
+  output=$(../../node-deb -- 'whitespace file.js' 'whitespace folder' 2>&1)
+
   if [ "$?" -ne 0 ]; then
     is_success=0
   fi
 
   output+='\n'
-  output+=`../../node-deb --  whitespace\ file.js whitespace\ folder 2>&1`
+  output+=$(../../node-deb --  whitespace\ file.js whitespace\ folder 2>&1)
   if [ "$?" -ne 0 ]; then
     is_success=0
   fi
@@ -166,10 +170,11 @@ test-whitespace-project() {
 
 test-node-deb-override-project() {
   echo "Running tests for node-deb-override-project"
-  cd "$_pwd/test/node-deb-override-project"
+  cd "$_pwd/test/node-deb-override-project" || die 'cd error'
 
   declare -i is_success=1
-  declare output=`../../node-deb --no-delete-temp -- app.js lib/`
+  declare output
+  output=$(../../node-deb --no-delete-temp -- app.js lib/)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -239,17 +244,19 @@ test-node-deb-override-project() {
 
 test-commandline-override-project() {
   echo "Running tests for commandline-override-project"
-  cd "$_pwd/test/commandline-override-project"
+  cd "$_pwd/test/commandline-override-project" || die 'cd error'
 
   declare -i is_success=1
-  declare output=`../../node-deb --no-delete-temp \
+  declare output
+
+  output=$(../../node-deb --no-delete-temp \
     -n overridden-package-name \
     -v 0.1.1 \
     -u overridden-user \
     -g overridden-group \
     -m 'overridden maintainer' \
     -d 'overridden description' \
-    -- app.js lib/`
+    -- app.js lib/)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -290,15 +297,33 @@ test-commandline-override-project() {
 test-upstart-project() {
   echo 'Running tests for upstart-project'
   declare -r target_file='/var/log/upstart-project/TEST_OUTPUT'
+  declare -i is_success=1
 
+  # Make sure process can be started
   vagrant up --provision upstart && \
-  vagrant ssh upstart -c "if [ -a '$target_file' ]; then sudo rm -rfv '$target_file'; fi" && \
+  vagrant ssh upstart -c "if [ -a '$target_file' ]; then sudo rm -rf '$target_file'; fi" && \
   echo 'Sleeping...' && \
   sleep 3 && \
   vagrant ssh upstart -c "[ -f '$target_file' ]"
 
   if [ "$?" -ne 0 ]; then
+    is_success=0
     err 'Failure on checking file existence for target host'
+  fi
+
+  # Make sure process can be stopped
+  vagrant ssh upstart -c "sudo service upstart-project stop && { if [ -a '$target_file' ]; then sudo rm -rf '$target_file'; fi }" && \
+  echo 'Sleeping...' && \
+  sleep 3 && \
+  vagrant ssh upstart -c "[ ! -f '$target_file' ]"
+
+  if [ "$?" -ne 0 ]; then
+    is_success=0
+    err 'Failure on checking file absence for target host after process was stopped'
+  fi
+
+  if [ "$is_success" -ne 1 ]; then
+    err 'Failure for upstart-project'
     : $((failures++))
   else
     vagrant destroy -f upstart
@@ -309,15 +334,33 @@ test-upstart-project() {
 test-systemd-project() {
   echo 'Running tests for systemd-project'
   declare -r target_file='/var/log/systemd-project/TEST_OUTPUT'
+  declare -i is_success=1
 
+  # Make sure process can be started
   vagrant up --provision systemd && \
-  vagrant ssh systemd -c "if [ -a '$target_file' ]; then sudo rm -rfv '$target_file'; fi" && \
+  vagrant ssh systemd -c "if [ -a '$target_file' ]; then sudo rm -rf '$target_file'; fi" && \
   echo 'Sleeping...' && \
   sleep 3 && \
   vagrant ssh systemd -c "[ -f '$target_file' ]"
 
   if [ "$?" -ne 0 ]; then
+    is_success=0
     err 'Failure on checking file existence for target host'
+  fi
+
+  # Make sure process can be stopped
+  vagrant ssh systemd -c "sudo systemctl stop systemd-project && { if [ -a '$target_file' ]; then sudo rm -rf '$target_file'; fi }" && \
+  echo 'Sleeping...' && \
+  sleep 3 && \
+  vagrant ssh systemd -c "[ ! -f '$target_file' ]"
+
+  if [ "$?" -ne 0 ]; then
+    is_success=0
+    err 'Failure on checking file absence for target host after process was stopped'
+  fi
+
+  if [ "$is_success" -ne 1 ]; then
+    err 'Failure for systemd-project'
     : $((failures++))
   else
     vagrant destroy -f systemd
@@ -328,13 +371,23 @@ test-systemd-project() {
 test-no-init-project() {
   echo 'Running tests for no-init-project'
   declare -r target_file='/var/log/no-init-project/TEST_OUTPUT'
+  declare -i is_success=1
 
   vagrant up --provision no-init && \
   sleep 3 && \
-  vagrant ssh no-init -c "! [ -f '$target_file' ]"
+  vagrant ssh no-init -c "[ ! -f '$target_file' ]"
 
   if [ "$?" -ne 0 ]; then
+    is_success=0
     err 'Failure on checking file absence for target host'
+  fi
+
+  vagrant ssh no-init -c "nohup no-init-project" && \
+  sleep 3 && \
+  vagrant ssh no-init -c "[ -f '$target_file' ]"
+
+  if [ "$is_success" -ne 1 ]; then
+    err 'Failure for no-init-project'
     : $((failures++))
   else
     vagrant destroy -f no-init
