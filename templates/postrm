@@ -4,23 +4,27 @@ set -e
 
 # Will return true even if deletion fails
 deleteUser() {
+  declare -r user="$1"
+
   if hash deluser 2>/dev/null; then
-    deluser --quiet --system $1 > /dev/null || true
+    deluser --quiet --system "$user" > /dev/null || true
   elif hash userdel 2>/dev/null; then
-    userdel $1
+    userdel "$user"
   else
-    echo "WARNING: Could not delete user $1 . No suitable program (deluser, userdel) found"
+    echo "WARNING: Could not delete user $user . No suitable program (deluser, userdel) found"
   fi
 }
 
 # Will return true even if deletion fails
 deleteGroup() {
+  declare -r group="$1"
+
   if hash delgroup 2>/dev/null; then
-    delgroup --quiet --system $1 > /dev/null || true
+    delgroup --quiet --system "$group" > /dev/null || true
   elif hash groupdel 2>/dev/null; then
-    groupdel $1
+    groupdel "$group"
   else
-    echo "WARNING: Could not delete user $1 . No suitable program (delgroup, groupdel) found"
+    echo "WARNING: Could not delete user $group . No suitable program (delgroup, groupdel) found"
   fi
 }
 

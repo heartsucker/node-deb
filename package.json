@@ -1,13 +1,13 @@
 {
   "name": "node-deb",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <ehartsuyker@gmail.com>",
   "bin": {
     "node-deb": "./node-deb"
   },
   "scripts": {
-    "test": "./test.sh"
+    "test": "./test.sh --clean-first"
   },
   "repository": {
     "type": "git",

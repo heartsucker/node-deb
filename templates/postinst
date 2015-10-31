@@ -10,18 +10,18 @@ die() {
 }
 
 addUser() {
-  local user="$1"
+  declare -r user="$1"
+  declare -r uid="$2"
 
-  local uid="$2"
   if [ -z "$uid" ]; then
-    local uid_flags=""
+    declare -r uid_flags=""
   else
-    local uid_flags="--uid $uid"
+    declare -r uid_flags="--uid $uid"
   fi
 
-  local group=${3:-$user}
-  local descr=${4:-No description}
-  local shell=${5:-/bin/false}
+  declare -r group=${3:-$user}
+  declare -r descr=${4:-No description}
+  declare -r shell=${5:-/bin/false}
 
   if ! getent passwd | grep -q "^$user:"; then
     echo "Creating system user: $user in $group with $descr and shell $shell"
@@ -30,12 +30,13 @@ addUser() {
 }
 
 addGroup() {
-  local group="$1"
-  local gid="$2"
+  declare -r group="$1"
+  declare -r gid="$2"
+
   if [ -z "$gid" ]; then
-    local gid_flags=""
+    declare -r gid_flags=""
   else
-    local gid_flags="--gid $gid"
+    declare -r gid_flags="--gid $gid"
   fi
 
   if ! getent group | grep -q "^$group:" ; then
@@ -45,30 +46,36 @@ addGroup() {
 }
 
 start_service () {
-  local service_name="$1"
+  declare -r service_name="$1"
 
   if hash service 2> /dev/null; then
-    service "$service_name" start || echo "${service_name} could not be registered or started"
+    if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
+      service "$service_name" start || echo "${service_name} could not be registered or started"
+    fi
   elif hash start 2> /dev/null; then
-    start "$service_name" || echo "${service_name} could not be registered or started"
+    if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
+      start "$service_name" || echo "${service_name} could not be registered or started"
+    fi
   elif hash systemctl 2> /dev/null; then
-    {
-      systemctl enable "$service_name.service" && \
-      systemctl start "$service_name.service"
-    } || echo "${service_name} could not be registered or started"
+    if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' ]]; then
+      {
+        systemctl enable "$service_name.service" && \
+        systemctl start "$service_name.service"
+      } || echo "${service_name} could not be registered or started"
+    fi
   else
     die 'Your system does not appear to use upstart or systemd, so the service could not be started'
   fi
 }
 
-addGroup {{ node_deb_group }} ''
-addUser {{ node_deb_user }} '' {{ node_deb_group }} '{{ node_deb_user }} user-daemon' '/bin/false'
+addGroup '{{ node_deb_group }}' ''
+addUser '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
 
 if ! [ -d '/var/log/{{ node_deb_package_name }}' ]; then
   mkdir -p '/var/log/{{ node_deb_package_name }}'
 fi
 
-chown {{ node_deb_user }}:{{ node_deb_group }} /var/log/{{ node_deb_package_name }}
+chown '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
 
 if [[ "$init_type" == 'auto' ]]; then
   start_service '{{ node_deb_package_name }}'
