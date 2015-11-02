@@ -13,6 +13,7 @@ readlink_() {
 }
 
 _pwd=$(readlink_ "$0")
+echo "$_pwd"
 
 err() {
   echo "$@" >&2
@@ -27,7 +28,7 @@ finish() {
   cd "$_pwd" || die 'cd error'
 
   if [ "$no_clean" -eq 0 ]; then
-    find test -name './*.deb' -type f | xargs rm -f
+    find . -name '*.deb' -type f | xargs rm -f
   fi
 }
 
@@ -48,7 +49,7 @@ vagrant_clean() {
 
 declare -i failures=0
 declare -i no_clean=0
-single_project_test=
+declare single_project_test=
 
 while [ -n "$1" ]; do
   param="$1"
@@ -395,6 +396,38 @@ test-no-init-project() {
   fi
 }
 
+test-dog-food() {
+  echo 'Running the dog food test'
+  cd "$_pwd" || die 'cd error'
+  declare -i is_success=1
+
+  if ! ./node-deb --no-delete-temp -- node-deb templates/; then
+    is_success=0
+  fi
+
+  declare -r node_deb_version=$(jq -r '.version' "./package.json")
+  declare -r output_dir="node-deb_${node_deb_version}_all/"
+
+  if [ $(find "$output_dir" -name 'node-deb' -type f | wc -l) -lt 1 ]; then
+    is_success=0
+    err "Couldn't find node-deb in output"
+  fi
+
+  if [ $(find "$output_dir" -name 'templates' -type d | wc -l) -lt 1 ] || [ $(find "$output_dir/" -type f | grep 'templates' | wc -l) -lt 1 ]; then
+    is_success=0
+    err "Couldn't find templates"
+  fi
+
+  rm -rf "$output_dir"
+
+  if [ "$is_success" -ne 1 ]; then
+    : $((failures++))
+    err 'Failure for the dog food test'
+  else
+    echo 'Success for the dog food test'
+  fi
+}
+
 if [ -n "$single_project_test" ]; then
   echo '--------------------------'
   eval "$single_project_test"
@@ -414,6 +447,8 @@ else
   test-systemd-project
   echo '--------------------------'
   test-no-init-project
+  echo '--------------------------'
+  test-dog-food
   echo '--------------------------'
 fi
 
