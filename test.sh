@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# syntax check
+if ! bash -n "$0"; then
+  echo 'Script syntax error' >&2
+  exit 1
+fi
+
 readlink_() {
   declare src="${BASH_SOURCE[0]}"
   declare dir=
@@ -27,7 +33,7 @@ die() {
 finish() {
   cd "$_pwd" || die 'cd error'
 
-  if [ "$no_clean" -eq 0 ]; then
+if [ "$no_clean" -eq 0 ]; then
     find . -name '*.deb' -type f | xargs rm -f
   fi
 }
@@ -101,6 +107,19 @@ done
 cd "$_pwd" || die 'cd error'
 
 ### TESTS ###
+
+test-node-deb-syntax() {
+  echo 'Running syntax check'
+  cd "$_pwd" || die 'cd error'
+
+  if bash -n 'node-deb'; then
+    echo 'Syntax check success'
+    return 0
+  else
+    err 'Syntax check failure'
+    return 1
+  fi
+}
 
 test-simple-project() {
   echo "Running tests for simple-project"
@@ -433,6 +452,8 @@ if [ -n "$single_project_test" ]; then
   eval "$single_project_test"
   echo '--------------------------'
 else
+  echo '--------------------------'
+  test-node-deb-syntax
   echo '--------------------------'
   test-simple-project
   echo '--------------------------'
