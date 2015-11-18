@@ -19,7 +19,6 @@ readlink_() {
 }
 
 _pwd=$(readlink_ "$0")
-echo "$_pwd"
 
 err() {
   echo "$@" >&2
@@ -33,7 +32,7 @@ die() {
 finish() {
   cd "$_pwd" || die 'cd error'
 
-if [ "$no_clean" -eq 0 ]; then
+  if [ "$no_clean" -eq 0 ]; then
     find . -name '*.deb' -type f | xargs rm -f
   fi
 }
@@ -55,6 +54,7 @@ vagrant_clean() {
 
 declare -i failures=0
 declare -i no_clean=0
+declare -i clean_first=0
 declare single_project_test=
 
 while [ -n "$1" ]; do
@@ -73,10 +73,7 @@ while [ -n "$1" ]; do
       ;;
     --clean-first)
       # HELPDOC: Run all clean up tasks then run all tests
-      echo 'Removing test resources'
-      finish
-      vagrant_clean
-      echo 'Clean up complete'
+      clean_first=1
       ;;
     -h | --help)
       # HELPDOC: Display this message and exit
@@ -105,6 +102,13 @@ while [ -n "$1" ]; do
 done
 
 cd "$_pwd" || die 'cd error'
+
+if [ "$clean_first" -ne 0 ]; then
+  echo 'Removing test resources'
+  finish
+  vagrant_clean
+  echo 'Clean up complete'
+fi
 
 ### TESTS ###
 
