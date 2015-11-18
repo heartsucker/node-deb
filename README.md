@@ -107,6 +107,9 @@ More complete examples can be found by looking at `test.sh` and the correspondin
 
 These are both available through `apt` and `brew`.
 
+## Contributing
+Please make all pull requests to the `develop` branch.
+
 ## TODO
 - Untested with symlinks
 - Install via `brew`
