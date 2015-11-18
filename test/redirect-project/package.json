@@ -1,0 +1,13 @@
+{
+  "name": "redirect-project",
+  "version": "0.1.0",
+  "description": "foo",
+  "author": "foo <bar@baz.quux>",
+  "scripts": {
+    "test": "/bin/true"
+  },
+  "node_deb": {
+    "start_command": "err() {\n echo \"$@\" >&2 \n } \n echo 'test' /var/log/redirect-project/TEST_OUTPUT_STDOUT && \\\n { false || err 'test' 2> /var/log/redirect-project/TEST_OUTPUT_STDERR } \\\n && { err 'test' 2>&1 1> /var/log/redirect-project/TEST_OUTPUT_REDIRECT } \\\n && ./app.sh",
+    "init": "none"
+  }
+}
