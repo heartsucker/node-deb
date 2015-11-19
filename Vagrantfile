@@ -34,4 +34,11 @@ Vagrant.configure('2') do |config|
     box.vm.provision 'bootstrap', type: 'shell', path: './test/no-init-project/bootstrap.sh'
   end
 
+  config.vm.define :'redirect' do |box|
+    box.vm.host_name = 'redirect'
+    box.vm.box = 'debian/jessie64'
+    box.vm.network :private_network, ip: '192.168.200.5'
+    box.vm.provision 'bootstrap', type: 'shell', path: './test/redirect-project/bootstrap.sh'
+  end
+
 end

@@ -49,7 +49,7 @@ usage() {
 }
 
 vagrant_clean() {
-  vagrant destroy -f upstart systemd no-init
+  vagrant destroy -f upstart systemd no-init redirect
 }
 
 declare -i failures=0
@@ -406,8 +406,7 @@ test-no-init-project() {
     err 'Failure on checking file absence for target host'
   fi
 
-  vagrant ssh no-init -c "nohup no-init-project" && \
-  sleep 3 && \
+  vagrant ssh no-init -c "no-init-project" && \
   vagrant ssh no-init -c "[ -f '$target_file' ]"
 
   if [ "$is_success" -ne 1 ]; then
@@ -416,6 +415,35 @@ test-no-init-project() {
   else
     vagrant destroy -f no-init
     echo 'Success for no-init-project'
+  fi
+}
+
+test-redirect-project() {
+  echo 'Running tests for redirect-project'
+  declare -r target_file='/var/log/redirect-project/TEST_OUTPUT'
+  declare -r target_file_stdout='/var/log/redirect-project/TEST_OUTPUT_STDOUT'
+  declare -r target_file_stderr='/var/log/redirect-project/TEST_OUTPUT_STDERR'
+  declare -r target_file_redirect='/var/log/redirect-project/TEST_OUTPUT_REDIRECT'
+  declare -i is_success=1
+
+  vagrant up --provision redirect && \
+  vagrant ssh redirect -c "sudo redirect-project" && \
+  echo 'App was run.' && \
+  vagrant ssh redirect -c "[ -f '$target_file' ] && [ -f '$target_file_stdout' ] && [ -f '$target_file_stderr' ] && [ -f '$target_file_redirect' ]" && \
+  echo 'Files were found.' && \
+  vagrant ssh redirect -c "{ ! grep -q '{{' \"$(which redirect-project)\"; }" && \
+  echo 'Everything was replaced.'
+
+  if [ "$?" -ne 0 ]; then
+    is_success=0
+  fi
+
+  if [ "$is_success" -ne 1 ]; then
+    err 'Failure for redirect-project'
+    : $((failures++))
+  else
+    vagrant destroy -f redirect
+    echo 'Success for redirect-project'
   fi
 }
 
@@ -467,13 +495,15 @@ else
   echo '--------------------------'
   test-commandline-override-project
   echo '--------------------------'
+  test-dog-food
+  echo '--------------------------'
   test-upstart-project
   echo '--------------------------'
   test-systemd-project
   echo '--------------------------'
   test-no-init-project
   echo '--------------------------'
-  test-dog-food
+  test-redirect-project
   echo '--------------------------'
 fi
 
