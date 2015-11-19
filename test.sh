@@ -406,8 +406,7 @@ test-no-init-project() {
     err 'Failure on checking file absence for target host'
   fi
 
-  vagrant ssh no-init -c "nohup no-init-project" && \
-  sleep 3 && \
+  vagrant ssh no-init -c "no-init-project" && \
   vagrant ssh no-init -c "[ -f '$target_file' ]"
 
   if [ "$is_success" -ne 1 ]; then
@@ -428,10 +427,12 @@ test-redirect-project() {
   declare -i is_success=1
 
   vagrant up --provision redirect && \
-  vagrant ssh redirect -c "nohup redirect-project" && \
-  sleep 3 && \
+  vagrant ssh redirect -c "sudo redirect-project" && \
+  echo 'App was run.' && \
   vagrant ssh redirect -c "[ -f '$target_file' ] && [ -f '$target_file_stdout' ] && [ -f '$target_file_stderr' ] && [ -f '$target_file_redirect' ]" && \
-  vagrant ssh redirect -c "cat $(which redirect-project) | { ! grep -q '{{'; }"
+  echo 'Files were found.' && \
+  vagrant ssh redirect -c "{ ! grep -q '{{' \"$(which redirect-project)\"; }" && \
+  echo 'Everything was replaced.'
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -501,6 +502,8 @@ else
   test-systemd-project
   echo '--------------------------'
   test-no-init-project
+  echo '--------------------------'
+  test-redirect-project
   echo '--------------------------'
 fi
 
