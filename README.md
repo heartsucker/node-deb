@@ -97,6 +97,8 @@ On install, you will get.
 - A Unix group `bar`
 
 #### &c.
+This project itself can be built by `node-deb`. Just run `./node-deb -- node-deb templates/`.
+
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
 ## Requirements
@@ -104,6 +106,9 @@ More complete examples can be found by looking at `test.sh` and the correspondin
 - `jq`
 
 These are both available through `apt` and `brew`.
+
+## Contributing
+Please make all pull requests to the `develop` branch.
 
 ## TODO
 - Untested with symlinks

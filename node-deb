@@ -404,7 +404,7 @@ if [[ "$init" == 'auto' ]] || [[ "$init" == 'systemd' ]]; then
 fi
 
 escape() {
-  sed -e 's/[]\/$*.^|[]/\\&/g' <<< "$@"
+  sed -e 's/[]\/$*.^|[]/\\&/g' -e 's/&/\\&/g' <<< "$@"
 }
 
 replace_vars() {
