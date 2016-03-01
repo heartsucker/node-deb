@@ -1,6 +1,6 @@
 {
   "name": "node-deb",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <ehartsuyker@gmail.com>",
   "bin": {
