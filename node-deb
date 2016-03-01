@@ -455,32 +455,25 @@ find "$@" -maxdepth 1 -print0 | {
   done
 }
 
-write_md5sum() {
-  # Using $@ and not $1 because of files with whitespace
-  declare file="$@"
-
+# Calculate md5sums
+if [ "$no_md5sums" -eq 0 ]; then
   # Debian/Ubuntu
   if hash md5sum 2>/dev/null; then
-    declare -r sum=$(md5sum "$file" | cut -d ' ' -f1)
+    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 md5sum >> "$deb_dir/DEBIAN/md5sums"
   # OSX
   elif hash md5 2>/dev/null; then
-    declare -r sum=$(md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' ')
+    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
+      while IFS= read -r -d '' file; do
+        echo "$(md5 -q "$file") $file" >> "$deb_dir/DEBIAN/md5sums"
+      done
+    }
+  # OSX with `brew install gmd5sum`
+  elif hash gmd5sum 2>/dev/null; then
+    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 gmd5sum >> "$deb_dir/DEBIAN/md5sums"
   # Oh dear...
   else
     die 'Unable to find suitable md5 sum program'
   fi
-
-  file=$(echo "$file" | sed -e "s/$(escape "$deb_dir")//" | sed -e 's:^\.::' -e 's:^/*::')
-  echo "$sum $file" >> "$deb_dir/DEBIAN/md5sums"
-}
-
-# Calculate md5sums
-if [ "$no_md5sums" -eq 0 ]; then
-  find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
-  while IFS= read -r -d '' file; do
-    write_md5sum "$file"
-  done
-}
 fi
 
 dpkg-deb --build "$deb_dir"
