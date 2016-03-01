@@ -390,10 +390,11 @@ trap 'finish' EXIT
 
 if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
-mkdir -p "$deb_dir/DEBIAN"
-mkdir -p "$deb_dir/etc/$package_name"
-mkdir -p "$deb_dir/usr/share/$package_name/bin"
-mkdir -p "$deb_dir/usr/bin"
+mkdir -p "$deb_dir/DEBIAN" \
+         "$deb_dir/etc/$package_name" \
+         "$deb_dir/usr/share/$package_name/app" \
+         "$deb_dir/usr/share/$package_name/bin" \
+         "$deb_dir/usr/bin"
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'upstart' ]]; then
   mkdir -p "$deb_dir/etc/init"
@@ -444,44 +445,35 @@ fi
 
 ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
-chmod -R 0755 "$deb_dir/DEBIAN/"
-chmod -R 0755 "$deb_dir/usr/share/$package_name/bin/$executable_name"
+chmod -R 0755 "$deb_dir/DEBIAN/" \
+              "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
-find "$@" -type f -print0 | {
+find "$@" -maxdepth 1 -print0 | {
   while IFS= read -r -d '' file; do
-    dir="$deb_dir/usr/share/$package_name/app/$(dirname "$file")"
-    if ! [ -e "$dir" ]; then mkdir -p "$dir"; fi
-    cp "$file" "$dir"
+    rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
   done
-}
-
-write_md5sum() {
-  # Using $@ and not $1 because of files with whitespace
-  declare file="$@"
-
-  # Debian/Ubuntu
-  if hash md5sum 2>/dev/null; then
-    declare -r sum=$(md5sum "$file" | cut -d ' ' -f1)
-  # OSX
-  elif hash md5 2>/dev/null; then
-    declare -r sum=$(md5 "$file" | awk -F '=' '{ printf $NF }' | tr -d ' ')
-  # Oh dear...
-  else
-    die 'Unable to find suitable md5 sum program'
-  fi
-
-  file=$(echo "$file" | sed -e "s/$(escape "$deb_dir")//" | sed -e 's:^\.::' -e 's:^/*::')
-  echo "$sum $file" >> "$deb_dir/DEBIAN/md5sums"
 }
 
 # Calculate md5sums
 if [ "$no_md5sums" -eq 0 ]; then
-  find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
-  while IFS= read -r -d '' file; do
-    write_md5sum "$file"
-  done
-}
+  # Debian/Ubuntu
+  if hash md5sum 2>/dev/null; then
+    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 md5sum >> "$deb_dir/DEBIAN/md5sums"
+  # OSX
+  elif hash md5 2>/dev/null; then
+    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
+      while IFS= read -r -d '' file; do
+        echo "$(md5 -q "$file") $file" >> "$deb_dir/DEBIAN/md5sums"
+      done
+    }
+  # OSX with `brew install gmd5sum`
+  elif hash gmd5sum 2>/dev/null; then
+    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 gmd5sum >> "$deb_dir/DEBIAN/md5sums"
+  # Oh dear...
+  else
+    die 'Unable to find suitable md5 sum program'
+  fi
 fi
 
 dpkg-deb --build "$deb_dir"

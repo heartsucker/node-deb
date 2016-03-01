@@ -1,6 +1,6 @@
 {
   "name": "node-deb",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <ehartsuyker@gmail.com>",
   "bin": {
@@ -28,7 +28,7 @@
   ],
   "preferGlobal": true,
   "private": false,
-  "license": "GPL-3.0",
+  "license": "MIT",
   "homepage": "https://github.com/ehartsuyker/node-deb",
   "node_deb": {
     "start_command": "node-deb",
