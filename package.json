@@ -28,7 +28,7 @@
   ],
   "preferGlobal": true,
   "private": false,
-  "license": "GPL-3.0",
+  "license": "MIT",
   "homepage": "https://github.com/ehartsuyker/node-deb",
   "node_deb": {
     "start_command": "node-deb",
