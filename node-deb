@@ -2,7 +2,7 @@
 set -e
 
 die() {
-  echo "$@" >&2
+  echo 'Failure:' "$@" >&2
   exit 1
 }
 
@@ -21,7 +21,18 @@ readlink_() {
 
 ### INITIALIZE ###
 
-node_deb_dir=$(readlink_ $0)
+declare -r node_deb_dir=$(readlink_ $0)
+declare -i log_verbose=0
+
+log_debug() {
+  if [ "$log_verbose" -eq 1 ]; then
+    echo "$@"
+  fi
+}
+
+log_info() {
+  echo "$@"
+}
 
 # All the variables that are injected into templates
 package_name=
@@ -198,6 +209,10 @@ while [ -n "$1" ]; do
       user="$value"
       shift
       ;;
+    --verbose)
+      # HELPDOC: Print addtional information while packaging
+      log_verbose=1
+      ;;
     -v | --version)
       # HELPDOC: The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
       zero_check "$value" "$param"
@@ -239,6 +254,7 @@ if [ -z "$package_name" ]; then
     fi
   fi
 fi
+log_debug "The package name has been set to: $package_name"
 
 # Set the package version
 if [ -z "$package_version" ]; then
@@ -250,6 +266,7 @@ if [ -z "$package_version" ]; then
     fi
   fi
 fi
+log_debug "The package version has been set to: $package_version"
 
 # Set the package description
 if [ -z "$package_description" ]; then
@@ -261,6 +278,7 @@ if [ -z "$package_description" ]; then
     fi
   fi
 fi
+log_debug "The package description has been set and starts with: $(echo $package_description | head -1 | cut -c-40)"
 
 # Set the packge maintainer
 if [ -z "$package_maintainer" ]; then
@@ -269,6 +287,7 @@ if [ -z "$package_maintainer" ]; then
     package_maintainer=$(jq -r '.author' package.json)
   fi
 fi
+log_debug "The package maintainer has been set to: $package_maintainer"
 
 # Set executable name
 if [ -z "$executable_name" ]; then
@@ -277,11 +296,13 @@ if [ -z "$executable_name" ]; then
     executable_name="$package_name"
   fi
 fi
+log_debug "The executable name has been set to: $executable_name"
 
-# Set setart command
+# Set start command
 if [ "$start_command" == 'null' ]; then
   die 'Your package.json must have element "node_deb.start_command"'
 fi
+log_debug "The start command has been set to: $start_command"
 
 # Set unix user
 if [ -z "$user" ]; then
@@ -290,6 +311,7 @@ if [ -z "$user" ]; then
     user="$package_name"
   fi
 fi
+log_debug "The Unix user has been set to: $user"
 
 # Set unix group
 if [ -z "$group" ]; then
@@ -298,6 +320,7 @@ if [ -z "$group" ]; then
     group="$user"
   fi
 fi
+log_debug "The Unix group has been set to: $group"
 
 # Set init type
 if [ -z "$init" ]; then
@@ -312,6 +335,7 @@ case $init in
   *)
     die "Invalid init type: $init. Must be 'auto', 'upstart', 'systemd', or 'none'"
 esac
+log_debug "The init type has been set to: $init"
 
 # Set control template
 if [ -z "$template_control" ]; then
@@ -321,6 +345,7 @@ if [ -z "$template_control" ]; then
   fi
 fi
 : ${template_control:="$node_deb_dir/templates/control"}
+log_debug "The control template has been set to: $template_control"
 
 # Set executable template
 if [ -z "$template_executable" ]; then
@@ -330,6 +355,7 @@ if [ -z "$template_executable" ]; then
   fi
 fi
 : ${template_executable:="$node_deb_dir/templates/executable"}
+log_debug "The executable template has been set to: $template_executable"
 
 # Set postinst template
 if [ -z "$template_postinst" ]; then
@@ -339,6 +365,7 @@ if [ -z "$template_postinst" ]; then
   fi
 fi
 : ${template_postinst:="$node_deb_dir/templates/postinst"}
+log_debug "The postinst template has been set to: $template_postinst"
 
 # Set postrm template
 if [ -z "$template_postrm" ]; then
@@ -348,6 +375,7 @@ if [ -z "$template_postrm" ]; then
   fi
 fi
 : ${template_postrm:="$node_deb_dir/templates/postrm"}
+log_debug "The postrm template has been set to: $template_postrm"
 
 # Set prerm template
 if [ -z "$template_prerm" ]; then
@@ -357,6 +385,7 @@ if [ -z "$template_prerm" ]; then
   fi
 fi
 : ${template_prerm:="$node_deb_dir/templates/prerm"}
+log_debug "The prerm template has been set to: $template_prerm"
 
 # Set systemd unit template
 if [ -z "$template_systemd" ]; then
@@ -366,6 +395,7 @@ if [ -z "$template_systemd" ]; then
   fi
 fi
 : ${template_systemd:="$node_deb_dir/templates/systemd.service"}
+log_debug "The systemd template has been set to: $template_systemd"
 
 # Set upstart conf template
 if [ -z "$template_upstart" ]; then
@@ -375,6 +405,7 @@ if [ -z "$template_upstart" ]; then
   fi
 fi
 : ${template_upstart:="$node_deb_dir/templates/upstart.conf"}
+log_debug "The upstart template has been set to: $template_prerm"
 
 deb_dir="${package_name}_${package_version}_all"
 
@@ -390,6 +421,7 @@ trap 'finish' EXIT
 
 if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
+log_info 'Making install directories'
 mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
          "$deb_dir/usr/share/$package_name/app" \
@@ -429,6 +461,7 @@ replace_vars() {
   ### END TEMPLATE_VARS ###
 }
 
+log_info 'Rendering templates'
 replace_vars "$template_control" "$deb_dir/DEBIAN/control"
 replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst"
 replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm"
@@ -443,20 +476,25 @@ if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
   replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service"
 fi
 
+log_debug 'Templates rendered successfully'
+
 ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 chmod -R 0755 "$deb_dir/DEBIAN/" \
               "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
+log_info 'Recursively copying files into Debian directory'
 find "$@" -maxdepth 1 -print0 | {
   while IFS= read -r -d '' file; do
+    log_debug "Copying: $file"
     rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
   done
 }
 
 # Calculate md5sums
 if [ "$no_md5sums" -eq 0 ]; then
+  log_debug 'Calculating md5 sums'
   # Debian/Ubuntu
   if hash md5sum 2>/dev/null; then
     find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 md5sum >> "$deb_dir/DEBIAN/md5sums"
@@ -476,4 +514,6 @@ if [ "$no_md5sums" -eq 0 ]; then
   fi
 fi
 
-dpkg-deb --build "$deb_dir"
+log_info 'Building Debian package'
+dpkg-deb --build "$deb_dir" > '/dev/null'
+log_info 'Success.'
