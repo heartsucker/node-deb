@@ -50,32 +50,41 @@ start_service () {
 
   if hash service 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
-      service "$service_name" start || echo "${service_name} could not be registered or started"
+      service "$service_name" start || echo "$service_name could not be registered or started"
     fi
   elif hash start 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
-      start "$service_name" || echo "${service_name} could not be registered or started"
+      start "$service_name" || echo "$service_name could not be registered or started"
     fi
   elif hash systemctl 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' ]]; then
       {
         systemctl enable "$service_name.service" && \
         systemctl start "$service_name.service"
-      } || echo "${service_name} could not be registered or started"
+      } || echo "$service_name could not be registered or started"
     fi
   else
     die 'Your system does not appear to use upstart or systemd, so the service could not be started'
   fi
 }
 
+npm_install() {
+  cd "/usr/share/$1/app"
+  if [ -e 'node_modules' ]; then
+    rm -rf 'node_modules'
+  fi
+  npm install
+}
+
 addGroup '{{ node_deb_group }}' ''
 addUser '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
+npm_install '{{ node_deb_package_name }}'
 
 if ! [ -d '/var/log/{{ node_deb_package_name }}' ]; then
   mkdir -p '/var/log/{{ node_deb_package_name }}'
 fi
 
-chown '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
+chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
 
 if [[ "$init_type" == 'auto' ]]; then
   start_service '{{ node_deb_package_name }}'
