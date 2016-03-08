@@ -9,7 +9,8 @@ Simple.
 
 ## Compatibility
 
-This exists mostly as an internal tool for my company, so until there is an `0.2.0` release, there will not be any sort of assurances of compatibility between releases. This includes command line flags, binaries, and init scripts.
+This exists mostly as an internal tool for my company, so until there is an `0.2.0` release, there will not be any sort
+of assurances of compatibility between releases. This includes command line flags, binaries, and init scripts.
 
 ## Usage
 
@@ -18,20 +19,26 @@ This exists mostly as an internal tool for my company, so until there is an `0.2
 For the full list of options, run `node-deb -h`.
 
 ## Configuration
-You need to add the following to your `package.json`:
+You do not need to add anything to `package.json` as it uses sane defaults. However, if you don't like these, there are
+two options for overrides: command line options, or the JSON object `node_deb` at the top level of your `package.json`.
+
+For example, here are some sample `node_deb` overrides. The full list can be found by running
+`node-deb --list-json-overrides`.
 
 ```json
 {
   "name": "some-app",
   ...
   "node_deb": {
-    "start_command": "/usr/bin/node app.js arg1 arg2"
+    "init": "systemd",
+    "version": "1.2.3-beta",
+    "start_command": "/usr/bin/node/ foo.js"
   }
 }
 ```
 
-### Overrides
-Command line options always override values found in the `node_deb` object in `package.json`, and values found in the `node_deb` object always override the values found in the rest of `package.json`.
+Command line options always override values found in the `node_deb` object, and values found in the `node_deb` object
+always override the values found in the rest of `package.json`.
 
 Examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
@@ -43,8 +50,8 @@ Examples can be found by looking at `test.sh` and the corresponding projects in 
 {
   "name": "some-app",
   "version": "1.2.3",
-  "node_deb": {
-    "start_command": "/usr/bin/node app.js arg1 arg2 arg3"
+  "scripts": {
+    "start": "/usr/bin/node app.js arg1 arg2 arg3"
   }
 }
 ```
@@ -73,8 +80,8 @@ On install, you will get.
 {
   "name": "some-other-app",
   "version": "5.0.2",
-  "node_deb": {
-    "start_command": "/usr/bin/node --harmony index.js"
+  "scripts": {
+    "start": "/usr/bin/node --harmony index.js"
   }
 }
 ```

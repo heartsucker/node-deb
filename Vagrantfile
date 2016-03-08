@@ -17,28 +17,28 @@ Vagrant.configure('2') do |config|
     box.vm.host_name = 'upstart'
     box.vm.box = 'ubuntu/trusty64'
     box.vm.network :private_network, ip: '192.168.200.2'
-    box.vm.provision 'bootstrap', type: 'shell', path: './test/upstart-project/bootstrap.sh'
+    box.vm.provision 'bootstrap', type: 'shell', run: 'always', path: './test/upstart-project/bootstrap.sh'
   end
 
   config.vm.define :systemd do |box|
     box.vm.host_name = 'systemd'
     box.vm.box = 'debian/jessie64'
     box.vm.network :private_network, ip: '192.168.200.3'
-    box.vm.provision 'bootstrap', type: 'shell', path: './test/systemd-project/bootstrap.sh'
+    box.vm.provision 'bootstrap', type: 'shell', run: 'always', path: './test/systemd-project/bootstrap.sh'
   end
 
   config.vm.define :'no-init' do |box|
     box.vm.host_name = 'no-init'
     box.vm.box = 'debian/jessie64'
     box.vm.network :private_network, ip: '192.168.200.4'
-    box.vm.provision 'bootstrap', type: 'shell', path: './test/no-init-project/bootstrap.sh'
+    box.vm.provision 'bootstrap', type: 'shell', run: 'always', path: './test/no-init-project/bootstrap.sh'
   end
 
   config.vm.define :'redirect' do |box|
     box.vm.host_name = 'redirect'
     box.vm.box = 'debian/jessie64'
     box.vm.network :private_network, ip: '192.168.200.5'
-    box.vm.provision 'bootstrap', type: 'shell', path: './test/redirect-project/bootstrap.sh'
+    box.vm.provision 'bootstrap', type: 'shell', run: 'always', path: './test/redirect-project/bootstrap.sh'
   end
 
 end

@@ -2,7 +2,7 @@
 set -e
 
 die() {
-  echo "$@" >&2
+  echo 'Failure:' "$@" >&2
   exit 1
 }
 
@@ -21,7 +21,22 @@ readlink_() {
 
 ### INITIALIZE ###
 
-node_deb_dir=$(readlink_ $0)
+declare -r node_deb_dir=$(readlink_ $0)
+declare -i log_verbose=0
+
+log_debug() {
+  if [ "$log_verbose" -eq 1 ]; then
+    echo "$@"
+  fi
+}
+
+log_info() {
+  echo "$@"
+}
+
+log_warn() {
+  echo 'WARNING!' "$@"
+}
 
 # All the variables that are injected into templates
 package_name=
@@ -120,6 +135,12 @@ while [ -n "$1" ]; do
       init="$value"
       shift
       ;;
+    --list-json-overrides)
+      # HELPDOC: List all fields of the 'node_deb' object in 'package.json' that can be used as an override then exit
+      # TODO this is likely to break
+      grep 'jq ' "$node_deb_dir/node-deb" | grep '\.node_deb\.' | cut -d "'" -f 2 | sort | uniq
+      exit 0
+      ;;
     --list-templates)
       # HELPDOC: Print a list of available templates then exit
       find "$node_deb_dir/templates" -type f -maxdepth 1 | awk -F '/' '{ print $NF }' | sort
@@ -198,6 +219,10 @@ while [ -n "$1" ]; do
       user="$value"
       shift
       ;;
+    --verbose)
+      # HELPDOC: Print addtional information while packaging
+      log_verbose=1
+      ;;
     -v | --version)
       # HELPDOC: The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
       zero_check "$value" "$param"
@@ -223,8 +248,8 @@ if [ -z "$1" ]; then
   die 'You must pick at least one file or directory to add to the Debian package'
 fi
 
-for file in $files; do
-  if ! [ -e $file ]; then
+for file in "$@"; do
+  if ! [ -e "$file" ]; then
     die "File does not exist: '$file'. Aborting"
   fi
 done
@@ -239,6 +264,7 @@ if [ -z "$package_name" ]; then
     fi
   fi
 fi
+log_debug "The package name has been set to: $package_name"
 
 # Set the package version
 if [ -z "$package_version" ]; then
@@ -250,6 +276,7 @@ if [ -z "$package_version" ]; then
     fi
   fi
 fi
+log_debug "The package version has been set to: $package_version"
 
 # Set the package description
 if [ -z "$package_description" ]; then
@@ -261,6 +288,7 @@ if [ -z "$package_description" ]; then
     fi
   fi
 fi
+log_debug "The package description has been set and starts with: $(echo $package_description | head -1 | cut -c-40)"
 
 # Set the packge maintainer
 if [ -z "$package_maintainer" ]; then
@@ -269,6 +297,7 @@ if [ -z "$package_maintainer" ]; then
     package_maintainer=$(jq -r '.author' package.json)
   fi
 fi
+log_debug "The package maintainer has been set to: $package_maintainer"
 
 # Set executable name
 if [ -z "$executable_name" ]; then
@@ -277,11 +306,16 @@ if [ -z "$executable_name" ]; then
     executable_name="$package_name"
   fi
 fi
+log_debug "The executable name has been set to: $executable_name"
 
-# Set setart command
+# Set start command
 if [ "$start_command" == 'null' ]; then
-  die 'Your package.json must have element "node_deb.start_command"'
+  start_command=$(jq -r '.scripts.start' package.json)
+  if [ "$start_command" == 'null' ]; then
+    die 'Your package.json must have element "node_deb.start_command" or "scripts.start"'
+  fi
 fi
+log_debug "The start command has been set to: $start_command"
 
 # Set unix user
 if [ -z "$user" ]; then
@@ -290,6 +324,7 @@ if [ -z "$user" ]; then
     user="$package_name"
   fi
 fi
+log_debug "The Unix user has been set to: $user"
 
 # Set unix group
 if [ -z "$group" ]; then
@@ -298,6 +333,7 @@ if [ -z "$group" ]; then
     group="$user"
   fi
 fi
+log_debug "The Unix group has been set to: $group"
 
 # Set init type
 if [ -z "$init" ]; then
@@ -312,6 +348,7 @@ case $init in
   *)
     die "Invalid init type: $init. Must be 'auto', 'upstart', 'systemd', or 'none'"
 esac
+log_debug "The init type has been set to: $init"
 
 # Set control template
 if [ -z "$template_control" ]; then
@@ -321,6 +358,7 @@ if [ -z "$template_control" ]; then
   fi
 fi
 : ${template_control:="$node_deb_dir/templates/control"}
+log_debug "The control template has been set to: $template_control"
 
 # Set executable template
 if [ -z "$template_executable" ]; then
@@ -330,6 +368,7 @@ if [ -z "$template_executable" ]; then
   fi
 fi
 : ${template_executable:="$node_deb_dir/templates/executable"}
+log_debug "The executable template has been set to: $template_executable"
 
 # Set postinst template
 if [ -z "$template_postinst" ]; then
@@ -339,6 +378,7 @@ if [ -z "$template_postinst" ]; then
   fi
 fi
 : ${template_postinst:="$node_deb_dir/templates/postinst"}
+log_debug "The postinst template has been set to: $template_postinst"
 
 # Set postrm template
 if [ -z "$template_postrm" ]; then
@@ -348,6 +388,7 @@ if [ -z "$template_postrm" ]; then
   fi
 fi
 : ${template_postrm:="$node_deb_dir/templates/postrm"}
+log_debug "The postrm template has been set to: $template_postrm"
 
 # Set prerm template
 if [ -z "$template_prerm" ]; then
@@ -357,6 +398,7 @@ if [ -z "$template_prerm" ]; then
   fi
 fi
 : ${template_prerm:="$node_deb_dir/templates/prerm"}
+log_debug "The prerm template has been set to: $template_prerm"
 
 # Set systemd unit template
 if [ -z "$template_systemd" ]; then
@@ -366,6 +408,7 @@ if [ -z "$template_systemd" ]; then
   fi
 fi
 : ${template_systemd:="$node_deb_dir/templates/systemd.service"}
+log_debug "The systemd template has been set to: $template_systemd"
 
 # Set upstart conf template
 if [ -z "$template_upstart" ]; then
@@ -375,6 +418,7 @@ if [ -z "$template_upstart" ]; then
   fi
 fi
 : ${template_upstart:="$node_deb_dir/templates/upstart.conf"}
+log_debug "The upstart template has been set to: $template_prerm"
 
 deb_dir="${package_name}_${package_version}_all"
 
@@ -390,6 +434,7 @@ trap 'finish' EXIT
 
 if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 
+log_info 'Making install directories'
 mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
          "$deb_dir/usr/share/$package_name/app" \
@@ -429,6 +474,7 @@ replace_vars() {
   ### END TEMPLATE_VARS ###
 }
 
+log_info 'Rendering templates'
 replace_vars "$template_control" "$deb_dir/DEBIAN/control"
 replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst"
 replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm"
@@ -443,20 +489,44 @@ if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
   replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service"
 fi
 
+log_debug 'Templates rendered successfully'
+
 ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 chmod -R 0755 "$deb_dir/DEBIAN/" \
               "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
-find "$@" -maxdepth 1 -print0 | {
+log_info 'Recursively copying files into Debian directory'
+
+find "$@" -maxdepth 0 -print0 | {
   while IFS= read -r -d '' file; do
-    rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
+    log_debug "Copying: $file"
+    if [[ "$file" == *node_modules* ]]; then
+      log_warn "Skipping file $file because 'npm install' is now run when the Debian package is installed."
+    else
+      rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
+    fi
   done
 }
 
+# TODO ? remove this in a future release
+if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then
+  log_warn "Including 'package.json' in the Debian package as it is needed for installing the .deb." \
+    "You can suppress this message by adding 'package.json' to the list of files on the command line."
+  cp './package.json' "$deb_dir/usr/share/$package_name/app/"
+fi
+
+# TODO ? remove this in a future release
+if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/npm-shrinkwrap.json" ]; then
+  log_warn "Including 'npm-shrinkwrap.json' in the Debian package as it is needed for installing the .deb." \
+    "You can suppress this message by adding 'npm-shrinkwrap.json' to the list of files on the command line."
+  cp './npm-shrinkwrap.json' "$deb_dir/usr/share/$package_name/app/"
+fi
+
 # Calculate md5sums
 if [ "$no_md5sums" -eq 0 ]; then
+  log_debug 'Calculating md5 sums'
   # Debian/Ubuntu
   if hash md5sum 2>/dev/null; then
     find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 md5sum >> "$deb_dir/DEBIAN/md5sums"
@@ -476,4 +546,6 @@ if [ "$no_md5sums" -eq 0 ]; then
   fi
 fi
 
-dpkg-deb --build "$deb_dir"
+log_info 'Building Debian package'
+dpkg-deb --build "$deb_dir" > '/dev/null'
+log_info 'Success.'

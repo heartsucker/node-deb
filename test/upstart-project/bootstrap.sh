@@ -19,7 +19,7 @@ fi
 cp -r /vagrant/ .
 mv vagrant/ node-deb/
 cd /root/node-deb/test/upstart-project
-./../../node-deb --no-delete-temp -- app.sh
+./../../node-deb --no-delete-temp -- app.sh package.json
 
 for pkg in $(find . -name '*.deb'); do
   dpkg -i "$pkg"
@@ -27,6 +27,6 @@ for pkg in $(find . -name '*.deb'); do
 done
 
 set +e
-service upstart-project start 2>&1 
+service upstart-project start 2>&1
 
 exit 0

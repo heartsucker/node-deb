@@ -1,12 +1,13 @@
 {
   "name": "node-deb",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <ehartsuyker@gmail.com>",
   "bin": {
     "node-deb": "./node-deb"
   },
   "scripts": {
+    "start": "./node-deb",
     "test": "./test.sh --clean-first"
   },
   "repository": {
@@ -31,7 +32,6 @@
   "license": "MIT",
   "homepage": "https://github.com/ehartsuyker/node-deb",
   "node_deb": {
-    "start_command": "node-deb",
     "init": "none"
   }
 }
