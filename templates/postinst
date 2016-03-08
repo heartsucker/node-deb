@@ -86,6 +86,6 @@ fi
 
 chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
 
-if [[ "$init_type" == 'auto' ]]; then
+if [[ "$init_type" == 'auto' ]] || [[ "$init_type" == 'systemd' ]] || [[ "$init_type" == 'upstart' ]]; then
   start_service '{{ node_deb_package_name }}'
 fi
