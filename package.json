@@ -7,6 +7,7 @@
     "node-deb": "./node-deb"
   },
   "scripts": {
+    "start": "./node-deb",
     "test": "./test.sh --clean-first"
   },
   "repository": {
@@ -31,7 +32,6 @@
   "license": "MIT",
   "homepage": "https://github.com/ehartsuyker/node-deb",
   "node_deb": {
-    "start_command": "node-deb",
     "init": "none"
   }
 }

@@ -19,7 +19,7 @@ fi
 cp -r /vagrant/ .
 mv vagrant/ node-deb/
 cd /root/node-deb/test/systemd-project
-./../../node-deb --no-delete-temp -- app.sh
+./../../node-deb --no-delete-temp -- app.sh package.json
 
 for pkg in $(find . -name '*.deb'); do
   dpkg -i "$pkg"
@@ -28,6 +28,6 @@ done
 
 set +e
 systemctl enable systemd-project 2>&1 && \
-systemctl start systemd-project 2>&1 
+systemctl start systemd-project 2>&1
 
 exit 0

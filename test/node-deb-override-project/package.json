@@ -4,10 +4,10 @@
   "description": "foo",
   "author": "foo <bar@baz.quux>",
   "scripts": {
+    "start": "/bin/true",
     "test": "/bin/true"
   },
   "node_deb": {
-    "start_command": "/bin/true",
     "package_name": "overridden-package-name",
     "executable_name": "overridden-executable-name",
     "version": "0.1.1",

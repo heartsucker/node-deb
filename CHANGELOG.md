@@ -8,3 +8,4 @@
   - Better script logging
   - `package.json` and `npm-shrinkwrap.json` are included by default, and warning messages are displayed if they aren't
   included
+  - If `node_deb.start_command` is not present in `package.json`, default to using `scripts.start`

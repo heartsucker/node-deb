@@ -4,9 +4,7 @@
   "description": "foo",
   "author": "foo <bar@baz.quux>",
   "scripts": {
+    "start": "./app.sh",
     "test": "/bin/true"
-  },
-  "node_deb": {
-    "start_command": "./app.sh"
   }
 }
