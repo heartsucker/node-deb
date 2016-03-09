@@ -10,7 +10,7 @@ Simple.
 ## Compatibility
 
 This exists mostly as an internal tool for my company, so until there is an `0.2.0` release, there will not be any sort
-of assurances of compatibility between releases. This includes command line flags, binaries, and init scripts.
+of assurances of compatibility between releases. This includes command line flags, executables, and init scripts.
 
 ## Usage
 
@@ -56,11 +56,11 @@ Examples can be found by looking at `test.sh` and the corresponding projects in 
 }
 ```
 
-`cmd`: `node-deb -- app.js lib/`
+`cmd`: `node-deb -- app.js lib/ package.json`
 
 You will get:
 - A Debian package named `some-app_1.2.3_all.deb`
-  - Containing the file `app.js` and the directory `lib`
+  - Containing the files `app.js` & `package.json` and the directory `lib`
   - Installed via
     - `apt-get install some-app`
     - `apt-get install some-app=1.2.3`
@@ -86,11 +86,11 @@ On install, you will get.
 }
 ```
 
-`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ node_modules/`
+`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ package.json`
 
 You will get:
 - A Debian package named `some-other-app_20150826_all.deb`
-  - Containing the file `index.js` and the directories `lib` and `node_modules`
+  - Containing the files `index.js` & `package.json` and the directories `lib` and `node_modules`
   - Installed via
     - `apt-get install some-other-app`
     - `apt-get install some-other-app=20150826`
@@ -104,7 +104,7 @@ On install, you will get.
 - A Unix group `bar`
 
 #### &c.
-This project itself can be built by `node-deb`. Just run `./node-deb -- node-deb templates/`.
+`node-deb` can Debian-package itself. Just run `./node-deb -- node-deb templates/ package.json`.
 
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
@@ -116,7 +116,3 @@ These are both available through `apt` and `brew`.
 
 ## Contributing
 Please make all pull requests to the `develop` branch.
-
-## TODO
-- Untested with symlinks
-- Install via `brew`

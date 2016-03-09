@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.1.10 - 2016-03-09
+- Changed
+  - `postinst` now runs `npm install` with the `--production` option
+
 #### 0.1.9 - 2016-03-08
 - **BREAKING**
   - `node-deb` will no longer include the `node_modules` directory, but instead will run `npm install` during the
