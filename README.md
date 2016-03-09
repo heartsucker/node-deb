@@ -60,7 +60,7 @@ Examples can be found by looking at `test.sh` and the corresponding projects in 
 
 You will get:
 - A Debian package named `some-app_1.2.3_all.deb`
-  - Containing the file `app.js` and the directory `lib`
+  - Containing the files `app.js` & `package.json` and the directory `lib`
   - Installed via
     - `apt-get install some-app`
     - `apt-get install some-app=1.2.3`
@@ -86,11 +86,11 @@ On install, you will get.
 }
 ```
 
-`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ node_modules/ package.json`
+`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ package.json`
 
 You will get:
 - A Debian package named `some-other-app_20150826_all.deb`
-  - Containing the file `index.js` and the directories `lib` and `node_modules`
+  - Containing the files `index.js` & `package.json` and the directories `lib` and `node_modules`
   - Installed via
     - `apt-get install some-other-app`
     - `apt-get install some-other-app=20150826`
