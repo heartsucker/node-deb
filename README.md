@@ -32,7 +32,7 @@ For example, here are some sample `node_deb` overrides. The full list can be fou
   "node_deb": {
     "init": "systemd",
     "version": "1.2.3-beta",
-    "start_command": "/usr/bin/node/ foo.js"
+    "start_command": "/usr/bin/node foo.js"
   }
 }
 ```
