@@ -12,10 +12,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ehartsuyker/node-deb.git"
+    "url": "git+https://github.com/heartsucker/node-deb.git"
   },
   "bugs": {
-    "url": "https://github.com/ehartsuyker/node-deb/issues"
+    "url": "https://github.com/heartsucker/node-deb/issues"
   },
   "keywords": [
     "debian",
@@ -30,7 +30,7 @@
   "preferGlobal": true,
   "private": false,
   "license": "MIT",
-  "homepage": "https://github.com/ehartsuyker/node-deb",
+  "homepage": "https://github.com/heartsucker/node-deb",
   "node_deb": {
     "init": "none"
   }
