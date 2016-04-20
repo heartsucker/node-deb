@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -o pipefail
 
 die() {
   echo 'Failure:' "$@" >&2
@@ -30,6 +31,7 @@ log_debug() {
   fi
 }
 
+# this is dumb, but it makes for consistency
 log_info() {
   echo "$@"
 }
@@ -51,7 +53,6 @@ node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 # note: init is also injected
 
 # Other variables
-files=
 init=
 no_delete_temp=0
 no_md5sums=0
@@ -454,6 +455,8 @@ escape() {
 }
 
 replace_vars() {
+  : ${1:?'Template file was not defined'}
+  : ${2:?'Target file was not defined'}
   declare -r file="$1"
   declare -r target_file="$2"
 
@@ -502,13 +505,18 @@ log_info 'Recursively copying files into Debian directory'
 find "$@" -maxdepth 0 -print0 | {
   while IFS= read -r -d '' file; do
     log_debug "Copying: $file"
-    if [[ "$file" == *node_modules* ]]; then
-      log_warn "Skipping file $file because 'npm install' is now run when the Debian package is installed."
-    else
-      rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
-    fi
+    rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
   done
 }
+
+# TODO ? remove this in a future release
+if ! echo "$@" | grep -q 'node_modules'; then
+  if [ -d 'node_modules' ]; then
+    log_warn "Including 'node_modules' in the Debian package as it is needed for installing the .deb." \
+      "You can suppress this message by adding 'node_modules' to the list of files on the command line."
+    rsync -rRq 'node_modules' "$deb_dir/usr/share/$package_name/app/"
+  fi
+fi
 
 # TODO ? remove this in a future release
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then
