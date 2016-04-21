@@ -5,11 +5,6 @@ set -o pipefail
 
 declare -r init_type='{{ node_deb_init }}'
 
-die() {
-  echo "$@" >&2
-  exit 1
-}
-
 addUser() {
   : ${1:?'User was not defined'}
   declare -r user="$1"
