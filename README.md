@@ -72,6 +72,10 @@ Opts:
 You do not need to add anything to `package.json` as it uses sane defaults. However, if you don't like these, there are
 two options for overrides: command line options, or the JSON object `node_deb` at the top level of your `package.json`.
 
+By default, if any of the following files exist, the will be included in the Debian package: `package.json`,
+`npm-shrinkwrap.json`, and `node_modules/`. To maintain some amount of compatibility between releases, if these files
+are not included in the command line arguments, a warning is issued alerting the user that they were included anyway.
+
 For example, here are some sample `node_deb` overrides. The full list can be found by running
 `node-deb --list-json-overrides`.
 
