@@ -14,13 +14,67 @@ of assurances of compatibility between releases. This includes command line flag
 
 ## Usage
 
-`node-deb [opts] -- file1 file2 ...`
-
-For the full list of options, run `node-deb -h`.
+```
+$ node-deb --help
+Usage: node-deb [opts] -- file1 file2 ...
+Opts:
+  --cat-template)
+    Print the contents of a given template then exit
+  -d | --description)
+     The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
+  -e | --executable-name)
+    The name of the executable (default: 'node_deb.executable_name' from package.json then $package-name)
+  -g | --group)
+     The Unix group the process will run as (default: 'node_deb.group' from package.json then $user)
+  -h | --help)
+    Display this message and exit
+  -i | --init)
+    Init script type {auto, upstart, systemd, none}. 'auto' chooses upstart or systemd. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
+  --list-json-overrides)
+    List all fields of the 'node_deb' object in 'package.json' that can be used as an override then exit
+  --list-templates)
+    Print a list of available templates then exit
+  --list-template-variables)
+    Print a list of variales available to templates then exit
+  -m | --maintainer)
+    The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
+  -n | --package-name)
+    The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
+  --no-delete-temp)
+    Do not delete temp directory used to build Debian package
+  --no-md5sums)
+    Do not calculate md5sums for DEBIAN directory
+  --template-control)
+    Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
+  --template-executable)
+    Override executable template (default: 'node_deb.templates.executable' from package.json then built-in)
+  --template-postinst)
+    Override maintainer script postinst template (default: 'node_deb.templates.postinst' from package.json then built-in)
+  --template-postrm)
+    Override maintainer script postrm template (default: 'node_deb.templates.postrm' from package.json then built-in)
+  --template-prerm)
+    Override maintainer script prerm template (default: 'node_deb.templates.prem' from package.json then built-in)
+  --template-systemd-service)
+    Override systemd unit template (default: 'node_deb.templates.systemd_service' from package.json then built-in)
+  --template-upstart-conf)
+    Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
+  -u | --user)
+    The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
+  --verbose)
+    Print addtional information while packaging
+  -v | --version)
+    The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
+  --)
+    Delimiter separating options from files and directories
+```
 
 ## Configuration
 You do not need to add anything to `package.json` as it uses sane defaults. However, if you don't like these, there are
 two options for overrides: command line options, or the JSON object `node_deb` at the top level of your `package.json`.
+
+By default, if any of the following files exist, the will be included in the Debian package: `package.json`,
+`npm-shrinkwrap.json`, and `node_modules/`. To maintain some amount of compatibility between releases, if these files
+are not included in the command line arguments, a warning is issued alerting the user that they were included anyway.
 
 For example, here are some sample `node_deb` overrides. The full list can be found by running
 `node-deb --list-json-overrides`.
