@@ -6,19 +6,20 @@ if ! bash -n "$0"; then
   exit 1
 fi
 
-readlink_() {
+get_script_dir() {
   declare src="${BASH_SOURCE[0]}"
   declare dir=
 
   while [ -h "$src" ]; do
-    dir="$(cd -P "$( dirname "$src" )" && pwd)"
+    dir="$(cd -P "$( dirname "$src")" && pwd)"
     src="$(readlink "$src")"
     [[ $src != /* ]] && src="$dir/$src"
   done
-  cd -P "$( dirname "$src" )" && pwd
+  cd -P "$(dirname "$src")" && pwd
 }
 
-_pwd=$(readlink_ "$0")
+_pwd=$(get_script_dir)
+declare -r _pwd
 
 err() {
   echo "$@" >&2

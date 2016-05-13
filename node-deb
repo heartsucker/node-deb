@@ -7,22 +7,22 @@ die() {
   exit 1
 }
 
-# beacuse OSX is shit and can't do `readlink -f`
-readlink_() {
+# beacuse OSX can't do `readlink -f`
+get_script_dir() {
   declare src="${BASH_SOURCE[0]}"
   declare dir=
 
   while [ -h "$src" ]; do
-    dir="$(cd -P "$( dirname "$src" )" && pwd)"
+    dir="$(cd -P "$( dirname "$src")" && pwd)"
     src="$(readlink "$src")"
     [[ $src != /* ]] && src="$dir/$src"
   done
-  cd -P "$( dirname "$src" )" && pwd
+  cd -P "$(dirname "$src")" && pwd
 }
 
 ### INITIALIZE ###
 
-declare -r node_deb_dir=$(readlink_ $0)
+declare -r node_deb_dir=$(get_script_dir)
 declare -i log_verbose=0
 
 log_debug() {
