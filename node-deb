@@ -214,6 +214,12 @@ while [ -n "$1" ]; do
       template_upstart="$param"
       shift
       ;;
+    --template-default-variables)
+      # HELPDOC: Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_default_variables="$param"
+      shift
+      ;;
     -u | --user)
       # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
       zero_check "$value" "$param"
@@ -421,6 +427,16 @@ fi
 : ${template_upstart:="$node_deb_dir/templates/upstart.conf"}
 log_debug "The upstart template has been set to: $template_prerm"
 
+# Set default variables (upstart) conf template
+if [ -z "$template_default_variables" ]; then
+  template_default_variables=$(jq -r '.node_deb.templates.default_variables' package.json)
+  if [[ "$template_default_variables" == 'null' ]]; then
+    template_default_variables=''
+  fi
+fi
+: ${template_default_variables:="$node_deb_dir/templates/default"}
+log_debug "The default variables file template has been set to: $template_default_variables"
+
 deb_dir="${package_name}_${package_version}_all"
 
 finish() {
@@ -438,6 +454,7 @@ if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 log_info 'Making install directories'
 mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
+         "$deb_dir/etc/default" \
          "$deb_dir/usr/share/$package_name/app" \
          "$deb_dir/usr/share/$package_name/bin" \
          "$deb_dir/usr/bin"
@@ -483,6 +500,7 @@ replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst"
 replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm"
 replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm"
 replace_vars "$template_executable" "$deb_dir/usr/share/$package_name/bin/$executable_name"
+replace_vars "$template_default_variables" "$deb_dir/etc/default/$package_name"
 
 if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then
   replace_vars "$template_upstart" "$deb_dir/etc/init/$package_name.conf"
@@ -555,5 +573,6 @@ if [ "$no_md5sums" -eq 0 ]; then
 fi
 
 log_info 'Building Debian package'
-dpkg-deb --build "$deb_dir" > '/dev/null'
+chmod -R u+rwX,g+rX-w,o+rX-w "$deb_dir"
+fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
 log_info 'Success.'
