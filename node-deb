@@ -44,7 +44,7 @@ log_warn() {
 package_name=
 package_version=
 executable_name=
-start_command=$(jq -r '.node_deb.start_command' package.json)
+start_command=
 user=
 group=
 package_description=
@@ -310,6 +310,7 @@ fi
 log_debug "The executable name has been set to: $executable_name"
 
 # Set start command
+start_command=$(jq -r '.node_deb.start_command' package.json)
 if [ "$start_command" == 'null' ]; then
   start_command=$(jq -r '.scripts.start' package.json)
   if [ "$start_command" == 'null' ]; then
