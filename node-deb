@@ -164,6 +164,11 @@ while [ -n "$1" ]; do
       package_name="$value"
       shift
       ;;
+    --start-command)
+      #HELPDOC: The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
+      start_command="$value"
+      shift
+      ;;
     --no-delete-temp)
       # HELPDOC: Do not delete temp directory used to build Debian package
       no_delete_temp=1
@@ -310,11 +315,13 @@ fi
 log_debug "The executable name has been set to: $executable_name"
 
 # Set start command
-start_command=$(jq -r '.node_deb.start_command' package.json)
-if [ "$start_command" == 'null' ]; then
-  start_command=$(jq -r '.scripts.start' package.json)
+if [ -z "$start_command" ]; then
+  start_command=$(jq -r '.node_deb.start_command' package.json)
   if [ "$start_command" == 'null' ]; then
-    die 'Your package.json must have element "node_deb.start_command" or "scripts.start"'
+    start_command=$(jq -r '.scripts.start' package.json)
+    if [ "$start_command" == 'null' ]; then
+      die 'Your package.json must have element "node_deb.start_command" or "scripts.start"'
+    fi
   fi
 fi
 log_debug "The start command has been set to: $start_command"
