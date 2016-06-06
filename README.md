@@ -164,6 +164,7 @@ More complete examples can be found by looking at `test.sh` and the correspondin
 
 ## Requirements
 - `dpkg`
+- `fakeroot`
 - `jq`
 
 These are both available through `apt` and `brew`.
