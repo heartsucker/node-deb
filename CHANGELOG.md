@@ -1,6 +1,6 @@
 # CHANGELOG
 
-#### unreleased
+#### 0.1.12 - 2016-06-06
 - Changed
   - `node-deb` no longer produces `jq` errors about missing `package.json` when run outside a project directory
 - Added
