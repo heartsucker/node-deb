@@ -44,6 +44,8 @@ Opts:
     Do not delete temp directory used to build Debian package
   --no-md5sums)
     Do not calculate md5sums for DEBIAN directory
+  --start-command)
+    The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
   --template-control)
     Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
   --template-executable)

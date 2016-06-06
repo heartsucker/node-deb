@@ -164,11 +164,6 @@ while [ -n "$1" ]; do
       package_name="$value"
       shift
       ;;
-    --start-command)
-      #HELPDOC: The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
-      start_command="$value"
-      shift
-      ;;
     --no-delete-temp)
       # HELPDOC: Do not delete temp directory used to build Debian package
       no_delete_temp=1
@@ -176,6 +171,11 @@ while [ -n "$1" ]; do
     --no-md5sums)
       # HELPDOC: Do not calculate md5sums for DEBIAN directory
       no_md5sums=1
+      ;;
+    --start-command)
+      # HELPDOC: The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
+      start_command="$value"
+      shift
       ;;
     --template-control)
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
