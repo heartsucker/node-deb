@@ -7,22 +7,22 @@ die() {
   exit 1
 }
 
-# beacuse OSX is shit and can't do `readlink -f`
-readlink_() {
+# beacuse OSX can't do `readlink -f`
+get_script_dir() {
   declare src="${BASH_SOURCE[0]}"
   declare dir=
 
   while [ -h "$src" ]; do
-    dir="$(cd -P "$( dirname "$src" )" && pwd)"
+    dir="$(cd -P "$( dirname "$src")" && pwd)"
     src="$(readlink "$src")"
     [[ $src != /* ]] && src="$dir/$src"
   done
-  cd -P "$( dirname "$src" )" && pwd
+  cd -P "$(dirname "$src")" && pwd
 }
 
 ### INITIALIZE ###
 
-declare -r node_deb_dir=$(readlink_ $0)
+declare -r node_deb_dir=$(get_script_dir)
 declare -i log_verbose=0
 
 log_debug() {
@@ -44,7 +44,7 @@ log_warn() {
 package_name=
 package_version=
 executable_name=
-start_command=$(jq -r '.node_deb.start_command' package.json)
+start_command=
 user=
 group=
 package_description=
@@ -171,6 +171,11 @@ while [ -n "$1" ]; do
     --no-md5sums)
       # HELPDOC: Do not calculate md5sums for DEBIAN directory
       no_md5sums=1
+      ;;
+    --start-command)
+      # HELPDOC: The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
+      start_command="$value"
+      shift
       ;;
     --template-control)
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
@@ -310,10 +315,13 @@ fi
 log_debug "The executable name has been set to: $executable_name"
 
 # Set start command
-if [ "$start_command" == 'null' ]; then
-  start_command=$(jq -r '.scripts.start' package.json)
+if [ -z "$start_command" ]; then
+  start_command=$(jq -r '.node_deb.start_command' package.json)
   if [ "$start_command" == 'null' ]; then
-    die 'Your package.json must have element "node_deb.start_command" or "scripts.start"'
+    start_command=$(jq -r '.scripts.start' package.json)
+    if [ "$start_command" == 'null' ]; then
+      die 'Your package.json must have element "node_deb.start_command" or "scripts.start"'
+    fi
   fi
 fi
 log_debug "The start command has been set to: $start_command"

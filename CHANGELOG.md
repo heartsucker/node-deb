@@ -1,5 +1,10 @@
-
 # CHANGELOG
+
+#### unreleased
+- Changed
+  - `node-deb` no longer produces `jq` errors about missing `package.json` when run outside a project directory
+- Added
+  - Command line option `--start-command` to allow setting of the start command from the command line
 
 #### 0.1.11 - 2016-04-21
 - **BREAKING**
