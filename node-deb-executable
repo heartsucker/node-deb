@@ -3,4 +3,4 @@
 set -e
 set -o pipefail
 
-/usr/share/{{ node_deb_package_name }}/app/node-deb $@
+/usr/share/{{ node_deb_package_name }}/app/node-deb "$@"
