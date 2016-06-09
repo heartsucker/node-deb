@@ -175,49 +175,49 @@ while [ -n "$1" ]; do
     --template-control)
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
       zero_check "$value" "$param"
-      template_control="$param"
+      template_control="$value"
       shift
       ;;
     --template-executable)
       # HELPDOC: Override executable template (default: 'node_deb.templates.executable' from package.json then built-in)
       zero_check "$value" "$param"
-      template_executable="$param"
+      template_executable="$value"
       shift
       ;;
     --template-postinst)
       # HELPDOC: Override maintainer script postinst template (default: 'node_deb.templates.postinst' from package.json then built-in)
       zero_check "$value" "$param"
-      template_postinst="$param"
+      template_postinst="$value"
       shift
       ;;
     --template-postrm)
       # HELPDOC: Override maintainer script postrm template (default: 'node_deb.templates.postrm' from package.json then built-in)
       zero_check "$value" "$param"
-      template_postrm="$param"
+      template_postrm="$value"
       shift
       ;;
     --template-prerm)
       # HELPDOC: Override maintainer script prerm template (default: 'node_deb.templates.prem' from package.json then built-in)
       zero_check "$value" "$param"
-      template_prerm="$param"
+      template_prerm="$value"
       shift
       ;;
     --template-systemd-service)
       # HELPDOC: Override systemd unit template (default: 'node_deb.templates.systemd_service' from package.json then built-in)
       zero_check "$value" "$param"
-      template_systemd="$param"
+      template_systemd="$value"
       shift
       ;;
     --template-upstart-conf)
       # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
       zero_check "$value" "$param"
-      template_upstart="$param"
+      template_upstart="$value"
       shift
       ;;
     --template-default-variables)
       # HELPDOC: Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
       zero_check "$value" "$param"
-      template_default_variables="$param"
+      template_default_variables="$value"
       shift
       ;;
     -u | --user)
