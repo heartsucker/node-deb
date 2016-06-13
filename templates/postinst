@@ -71,7 +71,14 @@ start_service () {
 npm_install() {
   : {$1:?'Package name was not defined'}
   cd "/usr/share/$1/app"
-  npm rebuild
+
+  if [ -d './node_modules' ]; then
+    echo 'Running npm install'
+    npm install --production
+  else
+    echo 'Running npm rebuild'
+    npm rebuild
+  fi
 }
 
 addGroup '{{ node_deb_group }}' ''
