@@ -6,6 +6,7 @@ Requires=network.target
 
 [Service]
 Type=simple
+EnvironmentFile=/etc/default/{{ node_deb_package_name }}
 WorkingDirectory=/usr/share/{{ node_deb_package_name }}
 ExecStart=/usr/share/{{ node_deb_package_name }}/bin/{{ node_deb_executable_name }}
 ExecReload=/bin/kill -HUP $MAINPID

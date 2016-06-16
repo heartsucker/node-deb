@@ -180,43 +180,49 @@ while [ -n "$1" ]; do
     --template-control)
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
       zero_check "$value" "$param"
-      template_control="$param"
+      template_control="$value"
       shift
       ;;
     --template-executable)
       # HELPDOC: Override executable template (default: 'node_deb.templates.executable' from package.json then built-in)
       zero_check "$value" "$param"
-      template_executable="$param"
+      template_executable="$value"
       shift
       ;;
     --template-postinst)
       # HELPDOC: Override maintainer script postinst template (default: 'node_deb.templates.postinst' from package.json then built-in)
       zero_check "$value" "$param"
-      template_postinst="$param"
+      template_postinst="$value"
       shift
       ;;
     --template-postrm)
       # HELPDOC: Override maintainer script postrm template (default: 'node_deb.templates.postrm' from package.json then built-in)
       zero_check "$value" "$param"
-      template_postrm="$param"
+      template_postrm="$value"
       shift
       ;;
     --template-prerm)
       # HELPDOC: Override maintainer script prerm template (default: 'node_deb.templates.prem' from package.json then built-in)
       zero_check "$value" "$param"
-      template_prerm="$param"
+      template_prerm="$value"
       shift
       ;;
     --template-systemd-service)
       # HELPDOC: Override systemd unit template (default: 'node_deb.templates.systemd_service' from package.json then built-in)
       zero_check "$value" "$param"
-      template_systemd="$param"
+      template_systemd="$value"
       shift
       ;;
     --template-upstart-conf)
       # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
       zero_check "$value" "$param"
-      template_upstart="$param"
+      template_upstart="$value"
+      shift
+      ;;
+    --template-default-variables)
+      # HELPDOC: Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_default_variables="$value"
       shift
       ;;
     -u | --user)
@@ -429,6 +435,16 @@ fi
 : ${template_upstart:="$node_deb_dir/templates/upstart.conf"}
 log_debug "The upstart template has been set to: $template_prerm"
 
+# Set default variables (upstart) conf template
+if [ -z "$template_default_variables" ]; then
+  template_default_variables=$(jq -r '.node_deb.templates.default_variables' package.json)
+  if [[ "$template_default_variables" == 'null' ]]; then
+    template_default_variables=''
+  fi
+fi
+: ${template_default_variables:="$node_deb_dir/templates/default"}
+log_debug "The default variables file template has been set to: $template_default_variables"
+
 deb_dir="${package_name}_${package_version}_all"
 
 finish() {
@@ -446,6 +462,7 @@ if [ -e "$deb_dir" ]; then rm -rf "$deb_dir"; fi
 log_info 'Making install directories'
 mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
+         "$deb_dir/etc/default" \
          "$deb_dir/usr/share/$package_name/app" \
          "$deb_dir/usr/share/$package_name/bin" \
          "$deb_dir/usr/bin"
@@ -491,6 +508,7 @@ replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst"
 replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm"
 replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm"
 replace_vars "$template_executable" "$deb_dir/usr/share/$package_name/bin/$executable_name"
+replace_vars "$template_default_variables" "$deb_dir/etc/default/$package_name"
 
 if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then
   replace_vars "$template_upstart" "$deb_dir/etc/init/$package_name.conf"
@@ -563,5 +581,6 @@ if [ "$no_md5sums" -eq 0 ]; then
 fi
 
 log_info 'Building Debian package'
-dpkg-deb --build "$deb_dir" > '/dev/null'
+chmod -R 0755 "$deb_dir"
+fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
 log_info 'Success.'

@@ -5,4 +5,4 @@ set -o pipefail
 
 cd /usr/share/{{ node_deb_package_name }}/app
 
-{{ node_deb_start_command }}
+{{ node_deb_start_command }} $@
