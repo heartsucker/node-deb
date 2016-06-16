@@ -72,12 +72,12 @@ npm_install() {
   : {$1:?'Package name was not defined'}
   cd "/usr/share/$1/app"
 
-  if [ -d './node_modules' ]; then
-    echo 'Running npm install'
+  if [ ! -d './node_modules' ]; then
+    echo "Directory 'node_modules' did not exist. Running 'npm install'"
     npm install --production
   else
-    echo 'Running npm rebuild'
-    npm rebuild
+    echo "Directory 'node_modules' exists. Running npm 'install rebuild'"
+    npm rebuild --production
   fi
 }
 

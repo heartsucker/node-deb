@@ -1,6 +1,10 @@
 # CHANGELOG
 
-#### 0.1.13 - 2016-06-16 
+#### 0.1.14 - 2016-06-16
+- Added
+  - The dropped commit that fixed `node_modules` install step mentioned in release notes from `0.1.13`
+
+#### 0.1.13 - 2016-06-16
 - **BREAKING**
   - The `executable` template now by default includes the `bash` variable `$@` as arguments to the `start_command`.
   This is breaking in the sense that is a user set their `start_command` to something like `node my-exe-thing $@`,
