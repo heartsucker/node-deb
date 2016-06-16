@@ -32,9 +32,6 @@
   "license": "MIT",
   "homepage": "https://github.com/heartsucker/node-deb",
   "node_deb": {
-    "init": "none",
-    "templates": {
-      "executable": "node-deb-executable"
-    }
+    "init": "none"
   }
 }

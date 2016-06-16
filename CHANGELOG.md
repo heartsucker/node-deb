@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### unreleased
+- **BREAKING**
+  - The `executable` template now by default includes the `bash` variable `$@` as arguments to the `start_command`.
+  This is breaking in the sense that is a user set their `start_command` to something like `node my-exe-thing $@`,
+  then this change will pass the arguments twice.
+
 #### 0.1.12 - 2016-06-06
 - Changed
   - `node-deb` no longer produces `jq` errors about missing `package.json` when run outside a project directory
