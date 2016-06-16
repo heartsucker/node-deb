@@ -5,9 +5,16 @@
   - The `executable` template now by default includes the `bash` variable `$@` as arguments to the `start_command`.
   This is breaking in the sense that is a user set their `start_command` to something like `node my-exe-thing $@`,
   then this change will pass the arguments twice.
+  - The build step now forces the usage of `fakeroot` while creating the package to avoid `uid` and `gid` collisions
+  between the environment where a package is built and where it is deployed.
+- Fixed
+  - `deb` packages that did not include `node_modules` did not do an `npm install` when installed with `dpkg` or `apt`.
+  The `postinst` now conditionally installs based on the existence of `node_modules`.
+- Added
+  - Template and command line args for default environment variables. Template is empty for now.
 
 #### 0.1.12 - 2016-06-06
-- Changed
+- Fixed
   - `node-deb` no longer produces `jq` errors about missing `package.json` when run outside a project directory
 - Added
   - Command line option `--start-command` to allow setting of the start command from the command line
@@ -90,7 +97,7 @@
 - Added
   - Check to ensure all target files exist before building `.deb`
   - `test.sh` and `test/` for automated testing (dev only)
-- Changed
+- Fixed
   - Correct handling of paths with whitespace
 
 #### 0.1.1 - 2015-08-26

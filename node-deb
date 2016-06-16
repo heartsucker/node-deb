@@ -581,6 +581,6 @@ if [ "$no_md5sums" -eq 0 ]; then
 fi
 
 log_info 'Building Debian package'
-chmod -R u+rwX,g+rX-w,o+rX-w "$deb_dir"
+chmod -R 0755 "$deb_dir"
 fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
 log_info 'Success.'
