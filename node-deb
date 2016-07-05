@@ -49,6 +49,7 @@ user=
 group=
 package_description=
 package_maintainer=
+package_dependencies=
 node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 # note: init is also injected
 
@@ -162,6 +163,12 @@ while [ -n "$1" ]; do
       # HELPDOC: The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
       zero_check "$value" "$param"
       package_name="$value"
+      shift
+      ;;
+    --package-dependencies)
+      # HELPDOC: The dependencies for the Debian package (default: 'node_deb.dependencies')
+      zero_check "$value" "$param"
+      package_dependencies="$value"
       shift
       ;;
     --no-delete-temp)
@@ -310,6 +317,13 @@ if [ -z "$package_maintainer" ]; then
   fi
 fi
 log_debug "The package maintainer has been set to: $package_maintainer"
+
+# Set the packge dependencies
+if [ -z "$package_dependencies" ]; then
+  package_dependencies=$(jq -r '.node_deb.dependencies' package.json)
+fi
+log_debug "The package dependencies has been set to: $package_dependencies"
+
 
 # Set executable name
 if [ -z "$executable_name" ]; then
@@ -494,6 +508,7 @@ replace_vars() {
     -e "s/{{ node_deb_start_command }}/$(escape $start_command)/g" \
     -e "s/{{ node_deb_package_description }}/$(escape $package_description)/g" \
     -e "s/{{ node_deb_package_maintainer }}/$(escape $package_maintainer)/g" \
+    -e "s/{{ node_deb_package_dependencies }}/$(escape $package_dependencies)/g" \
     -e "s/{{ node_deb_user }}/$(escape $user)/g" \
     -e "s/{{ node_deb_group }}/$(escape $group)/g" \
     -e "s/{{ node_deb_init }}/$(escape $init)/g" \
