@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.1.15 - 2016-07-07
+- Added
+  - Allows the default Debian dependencies in the `control` file to be overridden
+
 #### 0.1.14 - 2016-06-16
 - Added
   - The dropped commit that fixed `node_modules` install step mentioned in release notes from `0.1.13`

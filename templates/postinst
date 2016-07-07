@@ -76,7 +76,7 @@ npm_install() {
     echo "Directory 'node_modules' did not exist. Running 'npm install'"
     npm install --production
   else
-    echo "Directory 'node_modules' exists. Running npm 'install rebuild'"
+    echo "Directory 'node_modules' exists. Running 'npm rebuild'"
     npm rebuild --production
   fi
 }

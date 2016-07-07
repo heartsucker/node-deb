@@ -18,8 +18,8 @@ of assurances of compatibility between releases. This includes command line flag
 $ node-deb --help
 Usage: node-deb [opts] -- file1 file2 ...
 Opts:
-  --cat-template)
-    Print the contents of a given template then exit
+
+Package options:
   -d | --description)
      The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
   -e | --executable-name)
@@ -30,22 +30,30 @@ Opts:
     Display this message and exit
   -i | --init)
     Init script type {auto, upstart, systemd, none}. 'auto' chooses upstart or systemd. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
+  -m | --maintainer)
+    The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
+  -n | --package-name)
+    The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
+  --package-dependencies)
+    The dependencies for the Debian package (default: 'node_deb.dependencies')
+  --start-command)
+    The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
+  -u | --user)
+    The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
+  -v | --version)
+    The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
+  --)
+    Delimiter separating options from files and directories
+
+Template options:
+  --cat-template)
+    Print the contents of a given template then exit
   --list-json-overrides)
     List all fields of the 'node_deb' object in 'package.json' that can be used as an override then exit
   --list-templates)
     Print a list of available templates then exit
   --list-template-variables)
     Print a list of variales available to templates then exit
-  -m | --maintainer)
-    The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
-  -n | --package-name)
-    The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
-  --no-delete-temp)
-    Do not delete temp directory used to build Debian package
-  --no-md5sums)
-    Do not calculate md5sums for DEBIAN directory
-  --start-command)
-    The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
   --template-control)
     Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
   --template-executable)
@@ -60,14 +68,16 @@ Opts:
     Override systemd unit template (default: 'node_deb.templates.systemd_service' from package.json then built-in)
   --template-upstart-conf)
     Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
-  -u | --user)
-    The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
+  --template-default-variables)
+    Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
+
+Misc. options:
+  --no-delete-temp)
+    Do not delete temp directory used to build Debian package
+  --no-md5sums)
+    Do not calculate md5sums for DEBIAN directory
   --verbose)
     Print addtional information while packaging
-  -v | --version)
-    The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
-  --)
-    Delimiter separating options from files and directories
 ```
 
 ## Configuration
