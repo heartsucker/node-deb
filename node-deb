@@ -321,6 +321,11 @@ log_debug "The package maintainer has been set to: $package_maintainer"
 # Set the packge dependencies
 if [ -z "$package_dependencies" ]; then
   package_dependencies=$(jq -r '.node_deb.dependencies' package.json)
+  if [[ "$package_dependencies" == 'null' ]]; then
+    package_dependencies="nodejs"
+  else
+    package_dependencies="nodejs,"$package_dependencies
+  fi
 fi
 log_debug "The package dependencies has been set to: $package_dependencies"
 
