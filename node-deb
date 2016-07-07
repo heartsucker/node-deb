@@ -63,7 +63,7 @@ usage() {
   declare helpdoc='HELP'
   helpdoc+='DOC'
 
-  echo 'Usage: node-deb [opts] -- file1 file2 ...'
+  echo 'Usage: node-deb [opts] -- file [file ...]'
   echo 'Opts:'
   grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
 }
@@ -81,8 +81,8 @@ template_variables() {
 
 cat_template() {
   declare -r template="$1"
-  declare -r file
-  file=$(find "$node_deb_dir/templates" -name "$template" -type f -maxdepth 1 | head -n 1)
+  declare file
+  file=$(find "$node_deb_dir/templates" -maxdepth 1 -type f -name "$template" | head -n 1)
 
   if [ -z "$file" ]; then
     die "$template is not a valid template"
@@ -102,12 +102,8 @@ while [ -n "$1" ]; do
   value="$2"
 
   case $param in
-    --cat-template)
-      # HELPDOC: Print the contents of a given template then exit
-      zero_check "$value" "$param"
-      cat_template "$value"
-      exit 0
-      ;;
+
+# HELPDOC: Package options:
     -d | --description)
       # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
       zero_check "$value" "$param"
@@ -137,22 +133,6 @@ while [ -n "$1" ]; do
       init="$value"
       shift
       ;;
-    --list-json-overrides)
-      # HELPDOC: List all fields of the 'node_deb' object in 'package.json' that can be used as an override then exit
-      # TODO this is likely to break
-      grep 'jq ' "$node_deb_dir/node-deb" | grep '\.node_deb\.' | cut -d "'" -f 2 | sort | uniq
-      exit 0
-      ;;
-    --list-templates)
-      # HELPDOC: Print a list of available templates then exit
-      find "$node_deb_dir/templates" -type f -maxdepth 1 | awk -F '/' '{ print $NF }' | sort
-      exit 0
-      ;;
-    --list-template-variables)
-      # HELPDOC: Print a list of variales available to templates then exit
-      template_variables
-      exit 0
-      ;;
     -m | --maintainer)
       # HELPDOC: The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
       zero_check "$value" "$param"
@@ -171,18 +151,51 @@ while [ -n "$1" ]; do
       package_dependencies="$value"
       shift
       ;;
-    --no-delete-temp)
-      # HELPDOC: Do not delete temp directory used to build Debian package
-      no_delete_temp=1
-      ;;
-    --no-md5sums)
-      # HELPDOC: Do not calculate md5sums for DEBIAN directory
-      no_md5sums=1
-      ;;
     --start-command)
       # HELPDOC: The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
       start_command="$value"
       shift
+      ;;
+    -u | --user)
+      # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
+      zero_check "$value" "$param"
+      user="$value"
+      shift
+      ;;
+    -v | --version)
+      # HELPDOC: The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
+      zero_check "$value" "$param"
+      package_version="$value"
+      shift
+      ;;
+    --)
+      # HELPDOC: Delimiter separating options from files and directories
+      shift
+      break
+      ;;
+
+# HELPDOC: Template options:
+    --cat-template)
+      # HELPDOC: Print the contents of a given template then exit
+      zero_check "$value" "$param"
+      cat_template "$value"
+      exit 0
+      ;;
+    --list-json-overrides)
+      # HELPDOC: List all fields of the 'node_deb' object in 'package.json' that can be used as an override then exit
+      # TODO this is likely to break
+      grep 'jq ' "$node_deb_dir/node-deb" | grep '\.node_deb\.' | cut -d "'" -f 2 | sort | uniq
+      exit 0
+      ;;
+    --list-templates)
+      # HELPDOC: Print a list of available templates then exit
+      find "$node_deb_dir/templates" -maxdepth 1 -type f | awk -F '/' '{ print $NF }' | sort
+      exit 0
+      ;;
+    --list-template-variables)
+      # HELPDOC: Print a list of variales available to templates then exit
+      template_variables
+      exit 0
       ;;
     --template-control)
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
@@ -232,26 +245,19 @@ while [ -n "$1" ]; do
       template_default_variables="$value"
       shift
       ;;
-    -u | --user)
-      # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
-      zero_check "$value" "$param"
-      user="$value"
-      shift
+
+# HELPDOC: Misc. options:
+    --no-delete-temp)
+      # HELPDOC: Do not delete temp directory used to build Debian package
+      no_delete_temp=1
+      ;;
+    --no-md5sums)
+      # HELPDOC: Do not calculate md5sums for DEBIAN directory
+      no_md5sums=1
       ;;
     --verbose)
       # HELPDOC: Print addtional information while packaging
       log_verbose=1
-      ;;
-    -v | --version)
-      # HELPDOC: The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
-      zero_check "$value" "$param"
-      package_version="$value"
-      shift
-      ;;
-    --)
-      # HELPDOC: Delimiter separating options from files and directories
-      shift
-      break
       ;;
     *)
       echo "Invalid option: $param" >&2
@@ -324,7 +330,7 @@ if [ -z "$package_dependencies" ]; then
   if [[ "$package_dependencies" == 'null' ]]; then
     package_dependencies="nodejs"
   else
-    package_dependencies="nodejs,"$package_dependencies
+    package_dependencies="nodejs, $package_dependencies"
   fi
 fi
 log_debug "The package dependencies has been set to: $package_dependencies"
