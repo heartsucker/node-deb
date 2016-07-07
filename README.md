@@ -66,6 +66,8 @@ Opts:
     Print addtional information while packaging
   -v | --version)
     The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
+  --package-dependencies)
+    Add package dependencies to the Debian package(default: 'node_deb.package_dependencies from package.json')
   --)
     Delimiter separating options from files and directories
 ```
