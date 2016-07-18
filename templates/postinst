@@ -71,7 +71,14 @@ start_service () {
 npm_install() {
   : {$1:?'Package name was not defined'}
   cd "/usr/share/$1/app"
-  npm rebuild
+
+  if [ ! -d './node_modules' ]; then
+    echo "Directory 'node_modules' did not exist. Running 'npm install'"
+    npm install --production
+  else
+    echo "Directory 'node_modules' exists. Running 'npm rebuild'"
+    npm rebuild --production
+  fi
 }
 
 addGroup '{{ node_deb_group }}' ''

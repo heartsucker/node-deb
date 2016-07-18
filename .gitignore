@@ -2,4 +2,4 @@
 *.deb
 *.log
 .vagrant
-
+*.swp
