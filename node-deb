@@ -544,6 +544,9 @@ if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
   replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service"
 fi
 
+# Create conffiles for dpkg, add all files in etc
+find "$deb_dir/etc" -type f | sed "s#$deb_dir##" > "$deb_dir/DEBIAN/conffiles"
+
 log_debug 'Templates rendered successfully'
 
 ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
