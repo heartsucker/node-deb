@@ -545,7 +545,7 @@ if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
 fi
 
 # Create conffiles for dpkg, add all files in etc
-find "$deb_dir/etc" -type f | sed "s#$deb_dir##" > "$deb_dir/DEBIAN/conffiles"
+find "$deb_dir/etc" -type f | sed "s/^$(escape "$deb_dir")//" > "$deb_dir/DEBIAN/conffiles"
 
 log_debug 'Templates rendered successfully'
 
