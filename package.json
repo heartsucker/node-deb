@@ -1,6 +1,6 @@
 {
   "name": "node-deb",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <ehartsuyker@gmail.com>",
   "bin": {
@@ -32,6 +32,10 @@
   "license": "MIT",
   "homepage": "https://github.com/heartsucker/node-deb",
   "node_deb": {
-    "init": "none"
+    "init": "none",
+    "templates": {
+      "executable": "template-overrides/executable",
+      "control": "template-overrides/control"
+    }
   }
 }

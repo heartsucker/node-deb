@@ -87,7 +87,7 @@ while [ -n "$1" ]; do
       ;;
     --only)
       # HELPDOC: Run only a single test by name
-      if echo "$value" | egrep -q '[^a-zA-Z0-9\-_]' | egrep -q '^test-'; then
+      if echo "$value" | egrep '[^a-zA-Z0-9\-_]' | egrep '^test-' > /dev/null; then
         die "Invalid test name: $value"
       fi
       single_project_test="$value"
