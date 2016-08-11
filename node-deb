@@ -392,8 +392,8 @@ log_debug "The init type has been set to: $init"
 
 # Set control template
 if [ -z "$template_control" ]; then
-  temp_template_control=$(jq -r '.node_deb.templates.control' package.json)
-  if [[ "$temp_template_control" == 'null' ]]; then
+  template_control=$(jq -r '.node_deb.templates.control' package.json)
+  if [[ "$template_control" == 'null' ]]; then
     template_control=''
   fi
 fi

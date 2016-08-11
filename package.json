@@ -34,7 +34,8 @@
   "node_deb": {
     "init": "none",
     "templates": {
-      "executable": "templates/node-deb-executable"
+      "executable": "template-overrides/executable",
+      "control": "template-overrides/control"
     }
   }
 }
