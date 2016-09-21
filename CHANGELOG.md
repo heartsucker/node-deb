@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.2.0 - 2016-09-21
+- Changed
+  - Minor formatting changes, updates to `README`
+
 #### 0.1.15 - 2016-07-07
 - Added
   - Allows the default Debian dependencies in the `control` file to be overridden

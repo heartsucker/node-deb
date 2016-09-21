@@ -68,16 +68,6 @@ usage() {
   grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
 }
 
-template_variables() {
-  declare -r temp_vars='TEMPLATE_VARS'
-  declare -r begin_pattern="### BEGIN $temp_vars ###"
-  declare -r end_pattern="### END $temp_vars ###"
-
-  sed -n -e "/$begin_pattern/,/$end_pattern/{/$begin_pattern/d;/$end_pattern/d;p;}" "$node_deb_dir/node-deb" | \
-  sed '1d;$d' | \
-  sed -e 's:\(.*{{ \)\([a-z_]*\)\( }}.*\):\2:g' | \
-  sort
-}
 
 cat_template() {
   declare -r template="$1"
@@ -189,12 +179,21 @@ while [ -n "$1" ]; do
       ;;
     --list-templates)
       # HELPDOC: Print a list of available templates then exit
-      find "$node_deb_dir/templates" -maxdepth 1 -type f | awk -F '/' '{ print $NF }' | sort
+      find "$node_deb_dir/templates" -maxdepth 1 -type f -print0| xargx -0 -n 1 basename | sort
       exit 0
       ;;
     --list-template-variables)
       # HELPDOC: Print a list of variales available to templates then exit
-      template_variables
+      # TODO this is fragile
+      declare -r temp_vars='TEMPLATE_VARS'
+      declare -r begin_pattern="### BEGIN $temp_vars ###"
+      declare -r end_pattern="### END $temp_vars ###"
+
+      sed -n -e "/$begin_pattern/,/$end_pattern/{/$begin_pattern/d;/$end_pattern/d;p;}" "$node_deb_dir/node-deb" | \
+      sed '1d;$d' | \
+      sed -e 's:\(.*{{ \)\([a-z_]*\)\( }}.*\):\2:g' | \
+      sort
+
       exit 0
       ;;
     --template-control)
@@ -510,6 +509,8 @@ replace_vars() {
   declare -r file="$1"
   declare -r target_file="$2"
 
+
+  # TODO if you change this section, make sure the --list-template-variables command doesn't break
   ### BEGIN TEMPLATE_VARS ###
   sed < "$file" \
     -e "s/{{ node_deb_package_name }}/$(escape $package_name)/g" \
@@ -564,7 +565,6 @@ find "$@" -maxdepth 0 -print0 | {
   done
 }
 
-# TODO ? remove this in a future release
 if ! echo "$@" | grep -q 'node_modules'; then
   if [ -d 'node_modules' ]; then
     log_warn "Including 'node_modules' in the Debian package as it is needed for installing the .deb." \
@@ -573,14 +573,12 @@ if ! echo "$@" | grep -q 'node_modules'; then
   fi
 fi
 
-# TODO ? remove this in a future release
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then
   log_warn "Including 'package.json' in the Debian package as it is needed for installing the .deb." \
     "You can suppress this message by adding 'package.json' to the list of files on the command line."
   cp './package.json' "$deb_dir/usr/share/$package_name/app/"
 fi
 
-# TODO ? remove this in a future release
 if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/npm-shrinkwrap.json" ]; then
   log_warn "Including 'npm-shrinkwrap.json' in the Debian package as it is needed for installing the .deb." \
     "You can suppress this message by adding 'npm-shrinkwrap.json' to the list of files on the command line."
@@ -613,3 +611,4 @@ log_info 'Building Debian package'
 chmod -R 0755 "$deb_dir"
 fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
 log_info 'Success.'
+exit 0
