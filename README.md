@@ -7,80 +7,12 @@ Simple.
 ## Installation
 `npm install node-deb`
 
-## Compatibility
+or
 
-This exists mostly as an internal tool for my company, so until there is an `0.2.0` release, there will not be any sort
-of assurances of compatibility between releases. This includes command line flags, executables, and init scripts.
+`git clone ${url} && cd node-deb && npm run node-deb && sudo dpkg -i $(find . -maxdepth 1 -type f -name '*.deb' | tail -n 1)`
 
 ## Usage
 
-```
-$ node-deb --help
-Usage: node-deb [opts] -- file1 file2 ...
-Opts:
-
-Package options:
-  -d | --description)
-     The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
-  -e | --executable-name)
-    The name of the executable (default: 'node_deb.executable_name' from package.json then $package-name)
-  -g | --group)
-     The Unix group the process will run as (default: 'node_deb.group' from package.json then $user)
-  -h | --help)
-    Display this message and exit
-  -i | --init)
-    Init script type {auto, upstart, systemd, none}. 'auto' chooses upstart or systemd. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
-  -m | --maintainer)
-    The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
-  -n | --package-name)
-    The name of the Debian package (default: 'node_deb.package_name' then 'name' from package.json)
-  --package-dependencies)
-    The dependencies for the Debian package (default: 'node_deb.dependencies')
-  --start-command)
-    The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
-  -u | --user)
-    The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
-  -v | --version)
-    The version of the Debian package (default: 'node_deb.version' then 'version' from package.json)
-  --)
-    Delimiter separating options from files and directories
-
-Template options:
-  --cat-template)
-    Print the contents of a given template then exit
-  --list-json-overrides)
-    List all fields of the 'node_deb' object in 'package.json' that can be used as an override then exit
-  --list-templates)
-    Print a list of available templates then exit
-  --list-template-variables)
-    Print a list of variales available to templates then exit
-  --template-control)
-    Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
-  --template-executable)
-    Override executable template (default: 'node_deb.templates.executable' from package.json then built-in)
-  --template-postinst)
-    Override maintainer script postinst template (default: 'node_deb.templates.postinst' from package.json then built-in)
-  --template-postrm)
-    Override maintainer script postrm template (default: 'node_deb.templates.postrm' from package.json then built-in)
-  --template-prerm)
-    Override maintainer script prerm template (default: 'node_deb.templates.prem' from package.json then built-in)
-  --template-systemd-service)
-    Override systemd unit template (default: 'node_deb.templates.systemd_service' from package.json then built-in)
-  --template-upstart-conf)
-    Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
-  --template-default-variables)
-    Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
-
-Misc. options:
-  --no-delete-temp)
-    Do not delete temp directory used to build Debian package
-  --no-md5sums)
-    Do not calculate md5sums for DEBIAN directory
-  --verbose)
-    Print addtional information while packaging
-```
-
-## Configuration
 You do not need to add anything to `package.json` as it uses sane defaults. However, if you don't like these, there are
 two options for overrides: command line options, or the JSON object `node_deb` at the top level of your `package.json`.
 
@@ -105,8 +37,6 @@ For example, here are some sample `node_deb` overrides. The full list can be fou
 
 Command line options always override values found in the `node_deb` object, and values found in the `node_deb` object
 always override the values found in the rest of `package.json`.
-
-Examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
 ## Examples
 #### Ex. 1
@@ -147,23 +77,23 @@ On install, you will get.
   "name": "some-other-app",
   "version": "5.0.2",
   "scripts": {
-    "start": "/usr/bin/node --harmony index.js"
+    "start": "node --harmony index.js"
   }
 }
 ```
 
-`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ package.json`
+`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ package.json node_modules`
 
 You will get:
 - A Debian package named `some-other-app_20150826_all.deb`
-  - Containing the files `index.js` & `package.json` and the directory `lib`
+  - Containing the files `index.js` & `package.json` and the directories `lib` & `node_modules`
   - Installed via
     - `apt-get install some-other-app`
     - `apt-get install some-other-app=20150826`
 
 On install, you will get.
 - An executable named `some-other-app`
-  - That starts the app with the command `/usr/bin/node --harmony index.js`
+  - That starts the app with the command `node --harmony index.js`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
 - A `systemd` unit file installed to `/etc/systemd/system/some-other-app.service`
 - A Unix user `foo`
@@ -179,7 +109,7 @@ More complete examples can be found by looking at `test.sh` and the correspondin
 - `fakeroot`
 - `jq`
 
-These are both available through `apt` and `brew`.
+These are all available through `apt` and `brew`.
 
 ## Contributing
 Please make all pull requests to the `develop` branch.
