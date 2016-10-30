@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### 0.3.0 - 2016-10-30
+- Added
+  - Command line flag `--extra-files` that adds a single directory of files to the Debian package. These files are
+    added to the root of the file system. E.g., if the dir `extra` contains `/var/lib/foo.dat`, then the Debian
+    package will install `foo.dat` to `/var/lib/` at install time.
+
 #### 0.2.0 - 2016-09-21
 - Changed
   - Minor formatting changes, updates to `README`
