@@ -146,6 +146,11 @@ while [ -n "$1" ]; do
       start_command="$value"
       shift
       ;;
+    --extras)
+      # HELPDOC: A folder of extra files to be added to the deb (without substitution) (default: 'node_deb.extras')
+      $extras="$value"
+      shift
+      ;;
     -u | --user)
       # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
       zero_check "$value" "$param"
@@ -389,6 +394,14 @@ case $init in
 esac
 log_debug "The init type has been set to: $init"
 
+# Check for extras
+if [ -z "$extras" ]; then
+  extras=$(jq -r '.node_deb.extras' package.json)
+  if [[ "$extras" == 'null' ]]; then
+    extras=''
+  fi
+fi
+
 # Set control template
 if [ -z "$template_control" ]; then
   template_control=$(jq -r '.node_deb.templates.control' package.json)
@@ -497,6 +510,11 @@ fi
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'systemd' ]]; then
   mkdir -p "$deb_dir/etc/systemd/system"
+fi
+
+if [[ "$extras" != "" ]]; then
+  log_info "Copying extras"
+  cp -r "$extras"/* "$deb_dir"
 fi
 
 escape() {
