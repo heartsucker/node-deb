@@ -2,8 +2,9 @@
 
 #### unreleased
 - Added
-  - CLI flag to display the readme
-  - CLI flag to display the changelog
+  - CLI flag to display the `README`
+  - CLI flag to display the `CHANGELOG`
+  - More examples to the `README`
 
 #### 0.3.0 - 2016-10-30
 - Added
