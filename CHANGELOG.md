@@ -1,5 +1,10 @@
 # CHANGELOG
 
+#### unreleased
+- Added
+  - CLI flag to display the readme
+  - CLI flag to display the changelog
+
 #### 0.3.0 - 2016-10-30
 - Added
   - Command line flag `--extra-files` that adds a single directory of files to the Debian package. These files are

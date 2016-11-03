@@ -87,6 +87,21 @@ zero_check() {
   fi
 }
 
+show_file() {
+  : ${1:?'Argument missing'}
+  echo "$PAGER"
+  if [ -n "$PAGER" ]; then
+    pager_cmd="$PAGER"
+  elif hash less &> /dev/null; then
+    pager_cmd='less'
+  elif hash more &> /dev/null; then
+    pager_cmd='more'
+  else
+    pager_cmd='cat'
+  fi
+  "$pager_cmd" "$1"
+}
+
 while [ -n "$1" ]; do
   param="$1"
   value="$2"
@@ -116,11 +131,6 @@ while [ -n "$1" ]; do
       zero_check "$value" "$param"
       group="$value"
       shift
-      ;;
-    -h | --help)
-      # HELPDOC: Display this message and exit
-      usage
-      exit 0
       ;;
     -i | --init)
       # HELPDOC: Init script type {auto, upstart, systemd, none}. 'auto' chooses upstart or systemd. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
@@ -251,6 +261,11 @@ while [ -n "$1" ]; do
       ;;
 
 # HELPDOC: Misc. options:
+    -h | --help)
+      # HELPDOC: Display this message and exit
+      usage
+      exit 0
+      ;;
     --no-delete-temp)
       # HELPDOC: Do not delete temp directory used to build Debian package
       no_delete_temp=1
@@ -258,6 +273,16 @@ while [ -n "$1" ]; do
     --no-md5sums)
       # HELPDOC: Do not calculate md5sums for DEBIAN directory
       no_md5sums=1
+      ;;
+    --show-changelog)
+      # HELPDOC: Display the changelog then exit
+      show_file "$node_deb_dir/CHANGELOG.md"
+      exit 0
+      ;;
+    --show-readme)
+      # HELPDOC: Display the README then exit
+      show_file "$node_deb_dir/README.md"
+      exit 0
       ;;
     --verbose)
       # HELPDOC: Print addtional information while packaging
