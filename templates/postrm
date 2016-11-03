@@ -4,28 +4,28 @@ set -e
 set -o pipefail
 
 # Will return true even if deletion fails
-deleteUser() {
+delete_user() {
   : ${1:?'User was not defined'}
   declare -r user="$1"
 
   if hash deluser 2>/dev/null; then
-    deluser --quiet --system "$user" > /dev/null || true
+    deluser --quiet --system "$user" > /dev/null || echo "WARNING: Failed to delete user $user"
   elif hash userdel 2>/dev/null; then
-    userdel "$user"
-  else
+    userdel "$user" || echo "WARNING: Failed to delete user $user"
+  els
     echo "WARNING: Could not delete user $user . No suitable program (deluser, userdel) found"
   fi
 }
 
 # Will return true even if deletion fails
-deleteGroup() {
+delete_group() {
   : ${1:?'Group was not defined'}
   declare -r group="$1"
 
   if hash delgroup 2>/dev/null; then
-    delgroup --quiet --system "$group" > /dev/null || true
+    delgroup --quiet --system "$group" > /dev/null || echo "WARNING: Failed to delete group $group"
   elif hash groupdel 2>/dev/null; then
-    groupdel "$group"
+    groupdel "$group" || echo "WARNING: Failed to delete group $group"
   else
     echo "WARNING: Could not delete user $group . No suitable program (delgroup, groupdel) found"
   fi
@@ -35,12 +35,12 @@ case "$1" in
    remove|failed-upgrade|abort-upgrade|abort-install|disappear)
    ;;
    purge)
-      deleteUser {{ node_deb_user }}
-      deleteGroup {{ node_deb_group }}
+      delete_user {{ node_deb_user }}
+      delete_group {{ node_deb_group }}
    ;;
    upgrade)
    ;;
    *)
-      echo "postinst called with unknown argument '\$1'" >&2
+      echo "postinst called with unknown argument '\$1'"
    ;;
 esac

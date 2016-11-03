@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### 0.4.0 2016-11-03
+- Added
+  - CLI flag to display the `README`
+  - CLI flag to display the `CHANGELOG`
+  - More examples to the `README`
+
 #### 0.3.0 - 2016-10-30
 - Added
   - Command line flag `--extra-files` that adds a single directory of files to the Debian package. These files are

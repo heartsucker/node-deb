@@ -120,6 +120,17 @@ test-node-deb-syntax() {
   fi
 }
 
+test-cli-flags() {
+  echo 'Running CLI checks'
+  cd "$_pwd"
+  export PAGER=cat
+  ./node-deb --show-readme > /dev/null && \
+  ./node-deb --show-changelog > /dev/null || {
+    err 'Could not display README or CHANGELOG'
+    : $((failures++))
+  }
+}
+
 test-simple-project() {
   echo "Running tests for simple-project"
   cd "$_pwd/test/simple-project" || die 'cd error'
@@ -518,6 +529,8 @@ if [ -n "$single_project_test" ]; then
 else
   echo '--------------------------'
   test-node-deb-syntax
+  echo '--------------------------'
+  test-cli-flags
   echo '--------------------------'
   test-simple-project
   echo '--------------------------'

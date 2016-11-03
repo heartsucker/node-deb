@@ -5,7 +5,7 @@ set -o pipefail
 
 declare -r init_type='{{ node_deb_init }}'
 
-addUser() {
+add_user() {
   : ${1:?'User was not defined'}
   declare -r user="$1"
   declare -r uid="$2"
@@ -26,7 +26,7 @@ addUser() {
   fi
 }
 
-addGroup() {
+add_group() {
   : ${1:?'Group was not defined'}
   declare -r group="$1"
   declare -r gid="$2"
@@ -81,8 +81,8 @@ npm_install() {
   fi
 }
 
-addGroup '{{ node_deb_group }}' ''
-addUser '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
+add_group '{{ node_deb_group }}' ''
+add_user '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
 npm_install '{{ node_deb_package_name }}'
 
 mkdir -p '/var/log/{{ node_deb_package_name }}'
