@@ -156,7 +156,7 @@ Note: Removal via `apt-get purge` will attempt to remove the user and group defi
 This can have serious consequences if the user or group is shared by other applications!
 
 #### &c.
-`node-deb` can Debian-package itself. Just run `./node-deb -- node-deb templates/ package.json`.
+`node-deb` can Debian-package itself. Just run `npm run node-deb`.
 
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 

@@ -9,7 +9,7 @@
   "scripts": {
     "start": "./node-deb",
     "test": "./test.sh --clean-first",
-    "node-deb": "./node-deb -- node-deb templates/ package.json README.md CHANGELOG.md"
+    "node-deb": "./node-deb -- node-deb templates/ package.json README.md CHANGELOG.md LICENSE"
   },
   "repository": {
     "type": "git",
