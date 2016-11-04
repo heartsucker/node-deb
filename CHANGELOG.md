@@ -1,6 +1,6 @@
 # CHANGELOG
 
-#### unreleased
+#### 0.4.1 2016-11-04
 - Added
   - Included `LICENSE` in `node-deb`'s Debian package.
 - Changed
