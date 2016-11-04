@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### unreleased
+- Added
+  - Included `LICENSE` in `node-deb`'s Debian package.
+- Changed
+  - Added clarifications to `README`
+
 #### 0.4.0 2016-11-03
 - Added
   - CLI flag to display the `README`
