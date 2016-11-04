@@ -1,6 +1,6 @@
 # CHANGELOG
 
-#### unreleased
+#### 0.4.0 2016-11-03
 - Added
   - CLI flag to display the `README`
   - CLI flag to display the `CHANGELOG`
