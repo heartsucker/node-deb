@@ -140,10 +140,11 @@ You will get:
 - A Debian package named `a-third-app_0.10.1_all.deb`
   - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json`  and the directories `lib` &
     `node_modules`
-  - With dependencies on `apparmor` and `tor`
+  - With additional dependencies on `apparmor` and `tor`
   - Installed via
     - `apt-get install a-third-app`
     - `apt-get install a-third-app=0.10.1`
+  - With the `postinst` script rendered from the template `my-postinst-template.txt`
 
 On install, you will get.
 - An executable named `a-third-app`
