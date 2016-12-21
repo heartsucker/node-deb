@@ -1,5 +1,15 @@
 # CHANGELOG
 
+#### 0.5.0 2016-12-21
+- Fixed
+  - `postrm` now correctly cleans up `/var/log/{{ package }}` on `purge`
+- Removed
+  - `node-deb` no longer creates `/var/run/{{ package }}`. This never worked correctly anyway on systems using `systemd`
+    because of a typo.
+- Changed
+  - `postinst` and `prerm` default to prioritizing `systemctl` over `service` and `start`/`stop` for stopping
+    and startin services
+
 #### 0.4.1 2016-11-04
 - Added
   - Included `LICENSE` in `node-deb`'s Debian package.

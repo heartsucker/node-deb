@@ -47,20 +47,20 @@ start_service () {
   : ${1:?'Service name was not defined'}
   declare -r service_name="$1"
 
-  if hash service 2> /dev/null; then
+  if hash systemctl 2> /dev/null; then
+    if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' ]]; then
+      {
+        systemctl enable "$service_name.service" && \
+        systemctl start "$service_name.service"
+      } || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
+    fi
+  elif hash service 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
       service "$service_name" start || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
     fi
   elif hash start 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
       start "$service_name" || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
-    fi
-  elif hash systemctl 2> /dev/null; then
-    if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' ]]; then
-      {
-        systemctl enable "$service_name.service" && \
-        systemctl start "$service_name.service"
-      } || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
     fi
   else
     # using `echo` to ensure script exits with 0. Failure to start is not failure to install
