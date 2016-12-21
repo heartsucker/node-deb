@@ -6,17 +6,19 @@ set -o pipefail
 declare -r init_type='{{ node_deb_init }}'
 declare -r service_name='{{ node_deb_package_name }}'
 
-if hash service 2> /dev/null; then
+if hash systemctl 2> /dev/null; then
+  if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' ]]; then
+    systemctl disable "$service_name.service" && \
+    systemctl stop "$service_name.service}" || \
+    echo "$service_name wasn't even running!"
+  fi
+elif hash service 2> /dev/null; then
   if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
     service "$service_name" stop || echo "$service_name wasn't even running!"
   fi
 elif hash stop 2> /dev/null; then
   if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
     stop "$service_name" || echo "$service_name wasn't even running!"
-  fi
-elif hash systemctl 2> /dev/null; then
-  if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' ]]; then
-    systemctl disable "$service_name.service" || echo "$service_name wasn't even running!"
   fi
 else
   # using echo because if we've reached here, most likely we never started

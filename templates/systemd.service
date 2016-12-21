@@ -12,9 +12,6 @@ ExecStart=/usr/share/{{ node_deb_package_name }}/bin/{{ node_deb_executable_name
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 User={{ node_deb_user }}
-ExecStartPre=/bin/mkdir -p /run/{{ node_deb_package_name }}
-ExecStartPre=/bin/chown {{ node_deb_user }}:{{ node_deb_group }} /run/{{ node_deb_package_name }}
-ExecStartPre=/bin/chmod 755 /run/{{ node_deb_package_name }}
 PermissionsStartOnly=true
 
 [Install]

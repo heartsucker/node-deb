@@ -352,7 +352,7 @@ test-extra-files-project() {
 
   if [ "$is_success" -eq 1 ]; then
     echo "Success for extra-files-project"
-    rm -rf "$output_dir"
+    rm -rf "$_pwd/test/extra-files-project_0.1.0_all"
   else
     err "Failure for extra-files-project"
     err "$output"
