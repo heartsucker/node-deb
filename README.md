@@ -165,6 +165,7 @@ More complete examples can be found by looking at `test.sh` and the correspondin
 - `dpkg`
 - `fakeroot`
 - `jq`
+- `rsync`
 
 These are all available through `apt` and `brew`.
 
