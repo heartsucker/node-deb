@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.5.1 2017
+- Changed
+  - `node-deb` has reverted back to using `cp` instead of `rsync` for copyping files
+
 #### 0.5.0 2016-12-21
 - Fixed
   - `postrm` now correctly cleans up `/var/log/{{ package }}` on `purge`
