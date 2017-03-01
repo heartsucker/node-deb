@@ -2,7 +2,7 @@
   "name": "node-deb",
   "version": "0.5.0",
   "description": "Debian packaging for Node.js projects",
-  "author": "heartsucker <ehartsuyker@gmail.com>",
+  "author": "heartsucker <heartsucker@autistici.org>",
   "bin": {
     "node-deb": "./node-deb"
   },
