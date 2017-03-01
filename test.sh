@@ -172,14 +172,14 @@ test-whitespace-project() {
   declare -i is_success=1
 
   declare output
-  output=$(../../node-deb -- 'whitespace file.js' 'whitespace folder' package.json 2>&1)
+  output=$(../../node-deb --verbose -- 'whitespace file.js' 'whitespace folder' package.json 2>&1)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
   fi
 
   output+='\n'
-  output+=$(../../node-deb --  whitespace\ file.js whitespace\ folder package.json 2>&1)
+  output+=$(../../node-deb --verbose --  whitespace\ file.js whitespace\ folder package.json 2>&1)
   if [ "$?" -ne 0 ]; then
     is_success=0
   fi
@@ -204,7 +204,7 @@ test-node-deb-override-project() {
 
   declare -i is_success=1
   declare output
-  output=$(../../node-deb --no-delete-temp -- app.js lib/ package.json)
+  output=$(../../node-deb --verbose --no-delete-temp -- app.js lib/ package.json)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -280,6 +280,7 @@ test-commandline-override-project() {
   declare output
 
   output=$(../../node-deb --no-delete-temp \
+    --verbose \
     -n overridden-package-name \
     -v 0.1.1 \
     -u overridden-user \
@@ -331,6 +332,7 @@ test-extra-files-project() {
   cd "$_pwd/test/extra-files-project" || die 'cd error'
 
   output=$(../../node-deb --no-delete-temp \
+    --verbose \
     --extra-files extra-files \
     -- foo.sh package.json)
 
@@ -352,7 +354,7 @@ test-extra-files-project() {
 
   if [ "$is_success" -eq 1 ]; then
     echo "Success for extra-files-project"
-    rm -rf "$_pwd/test/extra-files-project_0.1.0_all"
+    rm -rf "$_pwd/test/extra-files-project/extra-files-project_0.1.0_all*"
   else
     err "Failure for extra-files-project"
     err "$output"
@@ -495,7 +497,7 @@ test-dog-food() {
   cd "$_pwd" || die 'cd error'
   declare -i is_success=1
 
-  if ! ./node-deb --no-delete-temp -- node-deb templates/ package.json; then
+  if ! ./node-deb --verbose --no-delete-temp -- node-deb templates/ package.json; then
     is_success=0
   fi
 
