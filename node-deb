@@ -22,7 +22,8 @@ get_script_dir() {
 
 ### INITIALIZE ###
 
-declare -r node_deb_dir=$(get_script_dir)
+node_deb_dir=$(get_script_dir)
+declare -r node_deb_dir
 declare -i log_verbose=0
 
 log_debug() {
@@ -88,7 +89,7 @@ zero_check() {
 }
 
 show_file() {
-  : ${1:?'Argument missing'}
+  : "${1:?'Argument missing'}"
   echo "$PAGER"
   if [ -n "$PAGER" ]; then
     pager_cmd="$PAGER"
@@ -342,7 +343,7 @@ if [ -z "$package_description" ]; then
     fi
   fi
 fi
-log_debug "The package description has been set and starts with: $(echo $package_description | head -1 | cut -c-40)"
+log_debug "The package description has been set and starts with: $(echo "$package_description" | head -1 | cut -c-40)"
 
 # Set the packge maintainer
 if [ -z "$package_maintainer" ]; then
@@ -538,38 +539,51 @@ if [[ "$init" == 'auto' ]] || [[ "$init" == 'systemd' ]]; then
   mkdir -p "$deb_dir/etc/systemd/system"
 fi
 
-if ! [ -z "$extra_files" ]; then
-  log_info "Copying extra files"
-  cd "$extra_files"
-  rsync -rRq . "../$deb_dir"
-  cd ..
-fi
-
 escape() {
   sed -e 's/[]\/$*.^|[]/\\&/g' -e 's/&/\\&/g' <<< "$@"
 }
 
+if ! [ -z "$extra_files" ]; then
+  extra_files_escape="$(escape "$extra_files")"
+  declare -r extra_files_escape
+
+  log_info "Copying extra files from '$extra_files'"
+  find "$extra_files" -mindepth 1 -type d -print0 | {
+    while IFS= read -r -d '' dir; do
+      log_debug "Making directory: $dir"
+      dir_mod=$(echo "$dir" | sed -e "s/^$extra_files_escape//g")
+      mkdir -p "$deb_dir/$dir_mod"
+    done
+  }
+  find "$extra_files" -type f -print0 | {
+    while IFS= read -r -d '' file; do
+      log_debug "Copying: $file"
+      file_mod=$(echo "$file" | sed -e "s/^$extra_files_escape//g")
+      cp -f "$file" "$deb_dir/$file_mod"
+    done
+  }
+fi
+
 replace_vars() {
-  : ${1:?'Template file was not defined'}
-  : ${2:?'Target file was not defined'}
+  : "${1:?'Template file was not defined'}"
+  : "${2:?'Target file was not defined'}"
   declare -r file="$1"
   declare -r target_file="$2"
 
   # TODO if you change this section, make sure the --list-template-variables command doesn't break
   ### BEGIN TEMPLATE_VARS ###
   sed < "$file" \
-    -e "s/{{ node_deb_package_name }}/$(escape $package_name)/g" \
-    -e "s/{{ node_deb_app_command }}/$(escape $app_command)/g" \
-    -e "s/{{ node_deb_executable_name }}/$(escape $executable_name)/g" \
-    -e "s/{{ node_deb_package_version }}/$(escape $package_version)/g" \
-    -e "s/{{ node_deb_start_command }}/$(escape $start_command)/g" \
-    -e "s/{{ node_deb_package_description }}/$(escape $package_description)/g" \
-    -e "s/{{ node_deb_package_maintainer }}/$(escape $package_maintainer)/g" \
-    -e "s/{{ node_deb_package_dependencies }}/$(escape $package_dependencies)/g" \
-    -e "s/{{ node_deb_user }}/$(escape $user)/g" \
-    -e "s/{{ node_deb_group }}/$(escape $group)/g" \
-    -e "s/{{ node_deb_init }}/$(escape $init)/g" \
-    -e "s/{{ node_deb_version }}/$(escape $node_deb_version)/g" \
+    -e "s/{{ node_deb_package_name }}/$(escape "$package_name")/g" \
+    -e "s/{{ node_deb_executable_name }}/$(escape "$executable_name")/g" \
+    -e "s/{{ node_deb_package_version }}/$(escape "$package_version")/g" \
+    -e "s/{{ node_deb_start_command }}/$(escape "$start_command")/g" \
+    -e "s/{{ node_deb_package_description }}/$(escape "$package_description")/g" \
+    -e "s/{{ node_deb_package_maintainer }}/$(escape "$package_maintainer")/g" \
+    -e "s/{{ node_deb_package_dependencies }}/$(escape "$package_dependencies")/g" \
+    -e "s/{{ node_deb_user }}/$(escape "$user")/g" \
+    -e "s/{{ node_deb_group }}/$(escape "$group")/g" \
+    -e "s/{{ node_deb_init }}/$(escape "$init")/g" \
+    -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
   > "$target_file"
   ### END TEMPLATE_VARS ###
 }
