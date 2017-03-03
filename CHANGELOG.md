@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.5.3 2017-03-04
+- Fixed
+  - broken `xargs` call in the documentation
+
 #### 0.5.2 2017-03-03
 - Fixed
   - removed lingering usage of `rsync`
