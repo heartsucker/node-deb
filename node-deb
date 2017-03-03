@@ -633,13 +633,13 @@ if ! echo "$@" | grep -q 'node_modules'; then
   if [ -d 'node_modules' ]; then
     log_warn "Including 'node_modules' in the Debian package as it is needed for installing the .deb." \
       "You can suppress this message by adding 'node_modules' to the list of files on the command line."
-    find 'node-modules' -type d -print0 | {
+    find 'node_modules' -type d -print0 | {
       while IFS= read -r -d '' dir; do
         log_debug "Making directory: $dir"
         mkdir -p "$deb_dir/usr/share/$package_name/app/$dir"
       done
     }
-    find 'node-modules' -type f -print0 | {
+    find 'node_modules' -type f -print0 | {
       while IFS= read -r -d '' file; do
         log_debug "Copying: $file"
         cp -f  "$file" "$deb_dir/usr/share/$package_name/app/$file"
