@@ -1,6 +1,12 @@
 # CHANGELOG
 
-#### 0.5.1 2017
+#### 0.5.2 2017-03-03
+- Fixed
+  - removed lingering usage of `rsync`
+  - fixed broken `postrm` script
+  - made script `shellcheck` pure
+
+#### 0.5.1 2017-03-01
 - Changed
   - `node-deb` has reverted back to using `cp` instead of `rsync` for copyping files
 
