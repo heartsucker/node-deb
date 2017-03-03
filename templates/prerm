@@ -6,22 +6,18 @@ set -o pipefail
 declare -r init_type='{{ node_deb_init }}'
 declare -r service_name='{{ node_deb_package_name }}'
 
-if hash systemctl 2> /dev/null; then
-  if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' ]]; then
+if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' || "$init_type" == 'upstart' ]]; then
+  if hash systemctl 1> /dev/null; then
     systemctl disable "$service_name.service" && \
-    systemctl stop "$service_name.service}" || \
+    systemctl stop "$service_name.service" || \
     echo "$service_name wasn't even running!"
-  fi
-elif hash service 2> /dev/null; then
-  if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
+  elif hash service 2> /dev/null; then
     service "$service_name" stop || echo "$service_name wasn't even running!"
-  fi
-elif hash stop 2> /dev/null; then
-  if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
+  elif hash stop 2> /dev/null; then
     stop "$service_name" || echo "$service_name wasn't even running!"
+  else
+    # using echo because if we've reached here, most likely we never started
+    echo "Your system does not appear to use upstart or systemd, so $service_name could not be stopped"
+    echo 'Unless these systems were removed since install, no processes have been left running'
   fi
-else
-  # using echo because if we've reached here, most likely we never started
-  echo "Your system does not appear to use upstart or systemd, so $service_name could not be stopped"
-  echo 'Unless these systems were removed since install, no processes have been left running'
 fi
