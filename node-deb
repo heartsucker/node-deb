@@ -57,7 +57,6 @@ node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 # Other variables
 init=
 no_delete_temp=0
-no_md5sums=0
 
 usage() {
   # Local var because of grep
@@ -272,8 +271,9 @@ while [ -n "$1" ]; do
       no_delete_temp=1
       ;;
     --no-md5sums)
-      # HELPDOC: Do not calculate md5sums for DEBIAN directory
-      no_md5sums=1
+      # HELPDOC: DEPRECATED. This option does nothing.
+      log_warn 'Since `node-deb` v0.6.0 this option does nothing. Please remove this from your build script ' \
+          'to ensure future compatibility.'
       ;;
     --show-changelog)
       # HELPDOC: Display the changelog then exit
@@ -661,25 +661,23 @@ if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/ap
 fi
 
 # Calculate md5sums
-if [ "$no_md5sums" -eq 0 ]; then
-  log_debug 'Calculating md5 sums'
-  # Debian/Ubuntu
-  if hash md5sum 2>/dev/null; then
-    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 md5sum >> "$deb_dir/DEBIAN/md5sums"
-  # OSX
-  elif hash md5 2>/dev/null; then
-    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
-      while IFS= read -r -d '' file; do
-        echo "$(md5 -q "$file") $file" >> "$deb_dir/DEBIAN/md5sums"
-      done
-    }
-  # OSX with `brew install gmd5sum`
-  elif hash gmd5sum 2>/dev/null; then
-    find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 gmd5sum >> "$deb_dir/DEBIAN/md5sums"
-  # Oh dear...
-  else
-    die 'Unable to find suitable md5 sum program'
-  fi
+log_debug 'Calculating md5 sums'
+# Debian/Ubuntu
+if hash md5sum 2>/dev/null; then
+  find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 md5sum >> "$deb_dir/DEBIAN/md5sums"
+# OSX
+elif hash md5 2>/dev/null; then
+  find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | {
+    while IFS= read -r -d '' file; do
+      echo "$(md5 -q "$file") $file" >> "$deb_dir/DEBIAN/md5sums"
+    done
+  }
+# OSX with `brew install gmd5sum`
+elif hash gmd5sum 2>/dev/null; then
+  find "$deb_dir" -path "$deb_dir/DEBIAN" -prune -o -type f -print0 | xargs -0 gmd5sum >> "$deb_dir/DEBIAN/md5sums"
+# Oh dear...
+else
+  log_warn 'Unable to find suitable md5 sum program. No md5sums calculated.'
 fi
 
 log_info 'Building Debian package'

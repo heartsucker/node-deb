@@ -1,5 +1,10 @@
 # CHANGELOG
 
+#### unreleased
+- Changed
+  - Allow `md5sums` to not be calculated.
+  - Deprecated the `--no-md5sums` CLI arg.
+
 #### 0.5.3 2017-03-04
 - Fixed
   - broken `xargs` call in the documentation
