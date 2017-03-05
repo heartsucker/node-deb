@@ -8,22 +8,42 @@ die() {
 }
 
 # beacuse OSX can't do `readlink -f`
-get_script_dir() {
-  declare src="${BASH_SOURCE[0]}"
-  declare dir=
+declare -i has_readlink
+if readlink -f "$0" &> /dev/null; then
+  has_readlink=1
+else
+  has_readlink=0
+fi
+declare -r has_readlink
 
-  while [ -h "$src" ]; do
-    dir="$(cd -P "$( dirname "$src")" && pwd)"
-    src="$(readlink "$src")"
-    [[ $src != /* ]] && src="$dir/$src"
-  done
-  cd -P "$(dirname "$src")" && pwd
+readlink_f() {
+  : "${1:?'Target file not specified.'}"
+  declare src="$1"
+
+  if [ "$has_readlink" -eq 1 ]; then
+    readlink -f "$src"
+  else
+    declare dir=
+    while [ -h "$src" ]; do
+      dir="$(cd -P "$( dirname "$src")" && pwd)"
+      src="$(readlink "$src")"
+      [[ $src != /* ]] && src="$dir/$src"
+    done
+    cd -P "$(dirname "$src")"
+    echo "$(pwd)/$(basename "$src")"
+  fi
 }
 
 ### INITIALIZE ###
 
-node_deb_dir=$(get_script_dir)
+# the absolute path of this executable on the system
+node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
 declare -r node_deb_dir
+
+# the absolute path of the target protject's source code on the system
+source_dir="$(readlink_f "$(pwd)")"
+declare -r source_dir
+
 declare -i log_verbose=0
 
 log_debug() {
@@ -272,7 +292,7 @@ while [ -n "$1" ]; do
       ;;
     --no-md5sums)
       # HELPDOC: DEPRECATED. This option does nothing.
-      log_warn 'Since `node-deb` v0.6.0 this option does nothing. Please remove this from your build script ' \
+      log_warn "Since 'node-deb' v0.6.0 this option does nothing. Please remove this from your build script" \
           'to ensure future compatibility.'
       ;;
     --show-changelog)
@@ -528,6 +548,7 @@ mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
          "$deb_dir/etc/default" \
          "$deb_dir/usr/share/$package_name/app" \
+         "$deb_dir/usr/share/$package_name/app/node_modules" \
          "$deb_dir/usr/share/$package_name/bin" \
          "$deb_dir/usr/bin"
 
@@ -616,48 +637,56 @@ ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$execut
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
+if ! echo "$@" | grep -q 'node_modules'; then
+  log_warn "Since node-deb v0.6.0, 'node_modules' is automatically included and should not be specified on the" \
+    "command line. Only production files are included via 'npm ls --prod'. Inclusion of 'node_modules' will" \
+    'result in an error in future releases.'
+fi
+
+if ! echo "$@" | grep -q 'package.json'; then
+  log_warn "Since node-deb v0.6.0, 'package.json' is automatically included and should not be specified on the" \
+      'command line.'
+fi
+
+if ! echo "$@" | grep -q 'npm-shrinkwrap.json'; then
+  log_warn "Since node-deb v0.6.0, 'npm-shrinkwrap.json' is automatically included and should not be specified on the" \
+      'command line.'
+fi
+
 find "$@" -type d -print0 | {
   while IFS= read -r -d '' dir; do
-    log_debug "Making directory: $dir"
-    mkdir -p "$deb_dir/usr/share/$package_name/app/$dir"
+    if ! readlink_f "$dir" | grep -Eq "^$source_dir/node_modules/.*"; then
+      log_debug "Making directory: $dir"
+      mkdir -p "$deb_dir/usr/share/$package_name/app/$dir"
+    fi
   done
 }
 find "$@" -type f -print0 | {
   while IFS= read -r -d '' file; do
-    log_debug "Copying: $file"
-    cp -pf  "$file" "$deb_dir/usr/share/$package_name/app/$file"
+    if ! readlink_f "$file" | grep -Eq "$source_dir/node_modules/.*"; then
+      log_debug "Copying: $file"
+      cp -pf  "$file" "$deb_dir/usr/share/$package_name/app/$file"
+    fi
   done
 }
 
-if ! echo "$@" | grep -q 'node_modules'; then
-  if [ -d 'node_modules' ]; then
-    log_warn "Including 'node_modules' in the Debian package as it is needed for installing the .deb." \
-      "You can suppress this message by adding 'node_modules' to the list of files on the command line."
-    find 'node_modules' -type d -print0 | {
-      while IFS= read -r -d '' dir; do
-        log_debug "Making directory: $dir"
-        mkdir -p "$deb_dir/usr/share/$package_name/app/$dir"
-      done
-    }
-    find 'node_modules' -type f -print0 | {
-      while IFS= read -r -d '' file; do
-        log_debug "Copying: $file"
-        cp -pf  "$file" "$deb_dir/usr/share/$package_name/app/$file"
-      done
-    }
-  fi
+if [ -d "$source_dir/node_modules" ]; then
+  npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
+    while IFS="\n" -r -d dir; do
+      log_debug "Copying dir: $dir"
+      cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
+    done
+  }
 fi
 
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then
-  log_warn "Including 'package.json' in the Debian package as it is needed for installing the .deb." \
-    "You can suppress this message by adding 'package.json' to the list of files on the command line."
+  log_info "Including 'package.json' in the Debian package."
   cp -pf './package.json' "$deb_dir/usr/share/$package_name/app/"
 fi
 
 if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/npm-shrinkwrap.json" ]; then
-  log_warn "Including 'npm-shrinkwrap.json' in the Debian package as it is needed for installing the .deb." \
-    "You can suppress this message by adding 'npm-shrinkwrap.json' to the list of files on the command line."
-  cp './npm-shrinkwrap.json' "$deb_dir/usr/share/$package_name/app/"
+  log_info "Including 'npm-shrinkwrap.json' in the Debian package."
+  cp -pf './npm-shrinkwrap.json' "$deb_dir/usr/share/$package_name/app/"
 fi
 
 # Calculate md5sums
@@ -682,5 +711,5 @@ fi
 
 log_info 'Building Debian package'
 fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
-log_info 'Success.'
+log_info 'Debian package built.'
 exit 0

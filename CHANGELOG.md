@@ -2,8 +2,12 @@
 
 #### unreleased
 - Changed
+  - Automatically include `package.json`, `npm-shrinkwrap.json`, and `node_modules`. These no longer need to be
+    specified on the command line.
   - Allow `md5sums` to not be calculated.
   - Deprecated the `--no-md5sums` CLI arg.
+- Fixed
+  - `node_modules` is reduced down to only the production dependencies via `npm ls --prod`.
 
 #### 0.5.3 2017-03-04
 - Fixed

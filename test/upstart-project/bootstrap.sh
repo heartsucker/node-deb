@@ -19,7 +19,7 @@ fi
 cp -r /vagrant/ .
 mv vagrant/ node-deb/
 cd /root/node-deb/test/upstart-project
-./../../node-deb --no-delete-temp -- app.sh package.json
+./../../node-deb --no-delete-temp -- app.sh
 
 for pkg in $(find . -name '*.deb'); do
   dpkg -i "$pkg"
