@@ -540,7 +540,7 @@ fi
 : ${template_default_variables:="$node_deb_dir/templates/default"}
 log_debug "The default variables file template has been set to: $template_default_variables"
 
-deb_dir="${package_name}_${package_version}_${arch}"
+deb_dir="${package_name}_${package_version}_${architecture}"
 
 finish() {
   if [ $no_delete_temp -ne 1 ]; then
@@ -614,6 +614,7 @@ replace_vars() {
     -e "s/{{ node_deb_package_description }}/$(escape "$package_description")/g" \
     -e "s/{{ node_deb_package_maintainer }}/$(escape "$package_maintainer")/g" \
     -e "s/{{ node_deb_package_dependencies }}/$(escape "$package_dependencies")/g" \
+    -e "s/{{ node_deb_package_architecture }}/$(escape "$architecture")/g" \
     -e "s/{{ node_deb_user }}/$(escape "$user")/g" \
     -e "s/{{ node_deb_group }}/$(escape "$group")/g" \
     -e "s/{{ node_deb_init }}/$(escape "$init")/g" \
@@ -649,18 +650,18 @@ ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$execut
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
-if ! echo "$@" | grep -q 'node_modules'; then
+if echo "$@" | grep -q 'node_modules'; then
   log_warn "Since node-deb v0.6.0, 'node_modules' is automatically included and should not be specified on the" \
     "command line. Only production files are included via 'npm ls --prod'. Inclusion of 'node_modules' will" \
     'result in an error in future releases.'
 fi
 
-if ! echo "$@" | grep -q 'package.json'; then
+if echo "$@" | grep -q 'package.json'; then
   log_warn "Since node-deb v0.6.0, 'package.json' is automatically included and should not be specified on the" \
       'command line.'
 fi
 
-if ! echo "$@" | grep -q 'npm-shrinkwrap.json'; then
+if echo "$@" | grep -q 'npm-shrinkwrap.json'; then
   log_warn "Since node-deb v0.6.0, 'npm-shrinkwrap.json' is automatically included and should not be specified on the" \
       'command line.'
 fi
@@ -684,7 +685,7 @@ find "$@" -type f -print0 | {
 
 if [ -d "$source_dir/node_modules" ]; then
   npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
-    while IFS="\n" -r -d dir; do
+    while IFS="\n" read -r -d '' dir; do
       log_debug "Copying dir: $dir"
       cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
     done

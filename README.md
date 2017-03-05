@@ -16,7 +16,7 @@ or
 A simple project can be packaged with the following command.
 
 ```bash
-node-deb -- index.js lib/ package.json
+node-deb -- index.js lib/
 ```
 
 This command will add all of the above files and directories to a Debian package as well as generate the scripts
@@ -63,7 +63,7 @@ always override the values found in the rest of `package.json`.
 }
 ```
 
-`cmd`: `node-deb -- app.js lib/ package.json`
+`cmd`: `node-deb -- app.js lib/`
 
 You will get:
 - A Debian package named `some-app_1.2.3_all.deb`
