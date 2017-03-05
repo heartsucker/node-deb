@@ -614,6 +614,7 @@ replace_vars() {
     -e "s/{{ node_deb_package_description }}/$(escape "$package_description")/g" \
     -e "s/{{ node_deb_package_maintainer }}/$(escape "$package_maintainer")/g" \
     -e "s/{{ node_deb_package_dependencies }}/$(escape "$package_dependencies")/g" \
+    -e "s/{{ node_deb_package_architecture }}/$(escape "$architecture")/g" \
     -e "s/{{ node_deb_user }}/$(escape "$user")/g" \
     -e "s/{{ node_deb_group }}/$(escape "$group")/g" \
     -e "s/{{ node_deb_init }}/$(escape "$init")/g" \

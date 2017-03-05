@@ -2,7 +2,7 @@ Package: {{ node_deb_package_name }}
 Version: {{ node_deb_package_version }}
 Section: base
 Priority: optional
-Architecture: all
+Architecture: {{ node_deb_package_architecture }}
 Depends: {{ node_deb_package_dependencies }}
 Maintainer: {{ node_deb_package_maintainer }}
 Description: {{ node_deb_package_description }}
