@@ -4,6 +4,7 @@ set -e
 set -o pipefail
 
 declare -r init_type='{{ node_deb_init }}'
+declare -ri no_rebuild='{{ node_deb_no_rebuild }}'
 
 add_user() {
   : ${1:?'User was not defined'}
@@ -69,15 +70,17 @@ start_service () {
 }
 
 npm_install() {
-  : {$1:?'Package name was not defined'}
+  : "${1:?'Package name was not defined'}"
   cd "/usr/share/$1/app"
 
   if [ ! -d './node_modules' ]; then
     echo "Directory 'node_modules' did not exist. Running 'npm install'"
     npm install --production
   else
-    echo "Directory 'node_modules' exists. Running 'npm rebuild'"
-    npm rebuild --production
+    if [ "$no_rebuild" -eq 0 ]; then
+      echo "Directory 'node_modules' exists. Running 'npm rebuild'"
+      npm rebuild --production
+    fi
   fi
 }
 

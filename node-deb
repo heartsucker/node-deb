@@ -72,10 +72,10 @@ package_description=
 package_maintainer=
 package_dependencies=
 node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
-# note: init is also injected
+init=
+no_rebuild=0
 
 # Other variables
-init=
 no_delete_temp=0
 
 usage() {
@@ -169,6 +169,10 @@ while [ -n "$1" ]; do
       zero_check "$value" "$param"
       package_name="$value"
       shift
+      ;;
+    --no-rebuild)
+      # HELPDOC: On package installation, do not attempt `npm rebuild`.
+      no_rebuild=1
       ;;
     --package-dependencies)
       # HELPDOC: The dependencies for the Debian package (default: 'node_deb.dependencies')
@@ -606,6 +610,7 @@ replace_vars() {
     -e "s/{{ node_deb_user }}/$(escape "$user")/g" \
     -e "s/{{ node_deb_group }}/$(escape "$group")/g" \
     -e "s/{{ node_deb_init }}/$(escape "$init")/g" \
+    -e "s/{{ node_deb_no_rebuild }}/$(escape "$no_rebuild")/g" \
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
   > "$target_file"
   ### END TEMPLATE_VARS ###

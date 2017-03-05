@@ -6,6 +6,8 @@
     specified on the command line.
   - Allow `md5sums` to not be calculated.
   - Deprecated the `--no-md5sums` CLI arg.
+- Added
+  - `--no-rebuild` flag to prevent `postinst` maintainer script from running `npm rebuild`.
 - Fixed
   - `node_modules` is reduced down to only the production dependencies via `npm ls --prod`.
 
