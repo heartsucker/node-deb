@@ -3,7 +3,7 @@ set -e
 set -o pipefail
 
 die() {
-  echo 'Failure:' "$@" >&2
+  echo 'ERROR:' "$@" >&2
   exit 1
 }
 
@@ -28,17 +28,17 @@ declare -i log_verbose=0
 
 log_debug() {
   if [ "$log_verbose" -eq 1 ]; then
-    echo "$@"
+    echo 'DEBUG:' "$@"
   fi
 }
 
 # this is dumb, but it makes for consistency
 log_info() {
-  echo "$@"
+  echo 'INFO:' "$@"
 }
 
 log_warn() {
-  echo 'WARNING!' "$@"
+  echo 'WARN:' "$@"
 }
 
 # All the variables that are injected into templates
