@@ -77,6 +77,7 @@ no_rebuild=0
 
 # Other variables
 no_delete_temp=0
+architecture='all'
 
 usage() {
   # Local var because of grep
@@ -129,6 +130,12 @@ while [ -n "$1" ]; do
   case $param in
 
 # HELPDOC: Package options:
+    --arch)
+      # HELPDOC: Set the architecture of the Debian package (default 'all')
+      zero_check "$value" "$param"
+      architecture="$value"
+      shift
+      ;;
     -d | --description)
       # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
       zero_check "$value" "$param"
@@ -533,7 +540,7 @@ fi
 : ${template_default_variables:="$node_deb_dir/templates/default"}
 log_debug "The default variables file template has been set to: $template_default_variables"
 
-deb_dir="${package_name}_${package_version}_all"
+deb_dir="${package_name}_${package_version}_${arch}"
 
 finish() {
   if [ $no_delete_temp -ne 1 ]; then

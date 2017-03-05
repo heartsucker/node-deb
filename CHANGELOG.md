@@ -8,6 +8,8 @@
   - Deprecated the `--no-md5sums` CLI arg.
 - Added
   - `--no-rebuild` flag to prevent `postinst` maintainer script from running `npm rebuild`.
+  - `--arch` CLI option to allow setting the architecture of the target system. Intended to be used primarily with
+    the `--no-rebuild` option for finecky packages.
 - Fixed
   - `node_modules` is reduced down to only the production dependencies via `npm ls --prod`.
 
@@ -172,5 +174,5 @@
 #### 0.1.0 - 2015-08-26
 - Added
   - Simple command line flags
-  - Simple modifiers for Debian package, extraced from `package.json`
+  - Simple modifiers for Debian package, extracted from `package.json`
   - Templates for: Debian control file, `preinst`, `postinst`, `prerm`, `binary`, and Upstart script
