@@ -559,7 +559,7 @@ if ! [ -z "$extra_files" ]; then
     while IFS= read -r -d '' file; do
       log_debug "Copying: $file"
       file_mod=$(echo "$file" | sed -e "s/^$extra_files_escape//g")
-      cp -f "$file" "$deb_dir/$file_mod"
+      cp -pf "$file" "$deb_dir/$file_mod"
     done
   }
 fi
@@ -567,8 +567,10 @@ fi
 replace_vars() {
   : "${1:?'Template file was not defined'}"
   : "${2:?'Target file was not defined'}"
+  : "${3:?'Target file permissions were not defined'}"
   declare -r file="$1"
   declare -r target_file="$2"
+  declare -r permissions="$3"
 
   # TODO if you change this section, make sure the --list-template-variables command doesn't break
   ### BEGIN TEMPLATE_VARS ###
@@ -586,22 +588,23 @@ replace_vars() {
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
   > "$target_file"
   ### END TEMPLATE_VARS ###
+  chmod "$permissions" "$target_file"
 }
 
 log_info 'Rendering templates'
-replace_vars "$template_control" "$deb_dir/DEBIAN/control"
-replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst"
-replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm"
-replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm"
-replace_vars "$template_executable" "$deb_dir/usr/share/$package_name/bin/$executable_name"
-replace_vars "$template_default_variables" "$deb_dir/etc/default/$package_name"
+replace_vars "$template_control" "$deb_dir/DEBIAN/control" '0644'
+replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst" '0755'
+replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm" '0755'
+replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm" '0755'
+replace_vars "$template_executable" "$deb_dir/usr/share/$package_name/bin/$executable_name" '0755'
+replace_vars "$template_default_variables" "$deb_dir/etc/default/$package_name" '0644'
 
 if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then
-  replace_vars "$template_upstart" "$deb_dir/etc/init/$package_name.conf"
+  replace_vars "$template_upstart" "$deb_dir/etc/init/$package_name.conf" '0644'
 fi
 
 if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
-  replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service"
+  replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service" '0644'
 fi
 
 # Create conffiles for dpkg, add all files in etc
@@ -610,9 +613,6 @@ find "$deb_dir/etc" -type f | sed "s/^$(escape "$deb_dir")//" > "$deb_dir/DEBIAN
 log_debug 'Templates rendered successfully'
 
 ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
-
-chmod -R 0755 "$deb_dir/DEBIAN/" \
-              "$deb_dir/usr/share/$package_name/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
@@ -625,7 +625,7 @@ find "$@" -type d -print0 | {
 find "$@" -type f -print0 | {
   while IFS= read -r -d '' file; do
     log_debug "Copying: $file"
-    cp -f  "$file" "$deb_dir/usr/share/$package_name/app/$file"
+    cp -pf  "$file" "$deb_dir/usr/share/$package_name/app/$file"
   done
 }
 
@@ -642,7 +642,7 @@ if ! echo "$@" | grep -q 'node_modules'; then
     find 'node_modules' -type f -print0 | {
       while IFS= read -r -d '' file; do
         log_debug "Copying: $file"
-        cp -f  "$file" "$deb_dir/usr/share/$package_name/app/$file"
+        cp -pf  "$file" "$deb_dir/usr/share/$package_name/app/$file"
       done
     }
   fi
@@ -651,7 +651,7 @@ fi
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then
   log_warn "Including 'package.json' in the Debian package as it is needed for installing the .deb." \
     "You can suppress this message by adding 'package.json' to the list of files on the command line."
-  cp './package.json' "$deb_dir/usr/share/$package_name/app/"
+  cp -pf './package.json' "$deb_dir/usr/share/$package_name/app/"
 fi
 
 if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/npm-shrinkwrap.json" ]; then
@@ -683,7 +683,6 @@ if [ "$no_md5sums" -eq 0 ]; then
 fi
 
 log_info 'Building Debian package'
-chmod -R 0755 "$deb_dir"
 fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
 log_info 'Success.'
 exit 0
