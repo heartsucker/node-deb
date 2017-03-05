@@ -11,7 +11,7 @@
 
 #### 0.5.3 2017-03-04
 - Fixed
-  - broken `xargs` call in the documentation
+  - broken `xargs` call
 
 #### 0.5.2 2017-03-03
 - Fixed
@@ -21,7 +21,7 @@
 
 #### 0.5.1 2017-03-01
 - Changed
-  - `node-deb` has reverted back to using `cp` instead of `rsync` for copyping files
+  - `node-deb` has reverted back to using `cp` instead of `rsync` for copying files
 
 #### 0.5.0 2016-12-21
 - Fixed
