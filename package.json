@@ -1,6 +1,6 @@
 {
   "name": "node-deb",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <heartsucker@autistici.org>",
   "bin": {
@@ -9,7 +9,7 @@
   "scripts": {
     "start": "./node-deb",
     "test": "./test.sh --clean-first",
-    "node-deb": "./node-deb -- node-deb templates/ package.json README.md CHANGELOG.md LICENSE"
+    "node-deb": "./node-deb -- node-deb templates/ README.md CHANGELOG.md LICENSE"
   },
   "repository": {
     "type": "git",

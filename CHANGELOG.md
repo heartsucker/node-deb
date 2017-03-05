@@ -1,8 +1,21 @@
 # CHANGELOG
 
+#### 0.6.0 2017-03-05
+- Changed
+  - Automatically include `package.json`, `npm-shrinkwrap.json`, and `node_modules`. These no longer need to be
+    specified on the command line.
+  - Allow `md5sums` to not be calculated.
+  - Deprecated the `--no-md5sums` CLI arg.
+- Added
+  - `--no-rebuild` flag to prevent `postinst` maintainer script from running `npm rebuild`.
+  - `--arch` CLI option to allow setting the architecture of the target system. Intended to be used primarily with
+    the `--no-rebuild` option for finecky packages.
+- Fixed
+  - `node_modules` is reduced down to only the production dependencies via `npm ls --prod`.
+
 #### 0.5.3 2017-03-04
 - Fixed
-  - broken `xargs` call in the documentation
+  - broken `xargs` call
 
 #### 0.5.2 2017-03-03
 - Fixed
@@ -12,7 +25,7 @@
 
 #### 0.5.1 2017-03-01
 - Changed
-  - `node-deb` has reverted back to using `cp` instead of `rsync` for copyping files
+  - `node-deb` has reverted back to using `cp` instead of `rsync` for copying files
 
 #### 0.5.0 2016-12-21
 - Fixed
@@ -161,5 +174,5 @@
 #### 0.1.0 - 2015-08-26
 - Added
   - Simple command line flags
-  - Simple modifiers for Debian package, extraced from `package.json`
+  - Simple modifiers for Debian package, extracted from `package.json`
   - Templates for: Debian control file, `preinst`, `postinst`, `prerm`, `binary`, and Upstart script

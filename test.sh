@@ -137,7 +137,7 @@ test-simple-project() {
 
   declare -i is_success=1
   declare output
-  output=$(../../node-deb --no-delete-temp -- app.js lib/ package.json)
+  output=$(../../node-deb --no-delete-temp -- app.js lib/)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -172,14 +172,14 @@ test-whitespace-project() {
   declare -i is_success=1
 
   declare output
-  output=$(../../node-deb --verbose -- 'whitespace file.js' 'whitespace folder' package.json 2>&1)
+  output=$(../../node-deb --verbose -- 'whitespace file.js' 'whitespace folder' 2>&1)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
   fi
 
   output+='\n'
-  output+=$(../../node-deb --verbose --  whitespace\ file.js whitespace\ folder package.json 2>&1)
+  output+=$(../../node-deb --verbose --  whitespace\ file.js whitespace\ folder 2>&1)
   if [ "$?" -ne 0 ]; then
     is_success=0
   fi
@@ -204,7 +204,7 @@ test-node-deb-override-project() {
 
   declare -i is_success=1
   declare output
-  output=$(../../node-deb --verbose --no-delete-temp -- app.js lib/ package.json)
+  output=$(../../node-deb --verbose --no-delete-temp -- app.js lib/)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -287,7 +287,7 @@ test-commandline-override-project() {
     -g overridden-group \
     -m 'overridden maintainer' \
     -d 'overridden description' \
-    -- app.js lib/ package.json)
+    -- app.js lib/)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -334,7 +334,7 @@ test-extra-files-project() {
   output=$(../../node-deb --no-delete-temp \
     --verbose \
     --extra-files extra-files \
-    -- foo.sh package.json)
+    -- foo.sh)
 
   if [ "$?" -ne 0 ]; then
     is_success=0
@@ -497,7 +497,7 @@ test-dog-food() {
   cd "$_pwd" || die 'cd error'
   declare -i is_success=1
 
-  if ! ./node-deb --verbose --no-delete-temp -- node-deb templates/ package.json; then
+  if ! ./node-deb --verbose --no-delete-temp -- node-deb templates/; then
     is_success=0
   fi
 

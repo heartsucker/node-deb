@@ -16,7 +16,7 @@ or
 A simple project can be packaged with the following command.
 
 ```bash
-node-deb -- index.js lib/ node_modules package.json
+node-deb -- index.js lib/ package.json
 ```
 
 This command will add all of the above files and directories to a Debian package as well as generate the scripts
@@ -29,8 +29,7 @@ two options for overrides: command line options, or the JSON object `node_deb` a
 full explanation of the different options can be found by running `node-deb --help`.
 
 By default, if any of the following files exist, the will be included in the Debian package: `package.json`,
-`npm-shrinkwrap.json`, and `node_modules/`. If these files
-are not included in the command line arguments, a warning is issued alerting the user that they were included anyway.
+`npm-shrinkwrap.json`, and `node_modules/`.
 
 For example, here are some sample `node_deb` overrides. The full list can be found by running
 `node-deb --list-json-overrides`.
@@ -94,11 +93,12 @@ On install, you will get.
 }
 ```
 
-`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/ package.json node_modules`
+`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/`
 
 You will get:
 - A Debian package named `some-other-app_20150826_all.deb`
-  - Containing the files `index.js` & `package.json` and the directories `lib` & `node_modules`
+  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json` and the directories `lib` &
+    `node_modules`
   - Installed via
     - `apt-get install some-other-app`
     - `apt-get install some-other-app=20150826`
@@ -134,11 +134,11 @@ On install, you will get.
 }
 ```
 
-`cmd`: `node-deb -- app.js lib/ node_modules package.json npm-shrinkwrap.json`
+`cmd`: `node-deb -- app.js lib/`
 
 You will get:
 - A Debian package named `a-third-app_0.10.1_all.deb`
-  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json`  and the directories `lib` &
+  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json` and the directories `lib` &
     `node_modules`
   - With additional dependencies on `apparmor` and `tor`
   - Installed via

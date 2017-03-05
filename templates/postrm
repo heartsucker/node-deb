@@ -5,7 +5,7 @@ set -o pipefail
 
 # Will return true even if deletion fails
 delete_user() {
-  : ${1:?'User was not defined'}
+  : "${1:?'User was not defined'}"
   declare -r user="$1"
 
   if hash deluser 2>/dev/null; then
@@ -19,7 +19,7 @@ delete_user() {
 
 # Will return true even if deletion fails
 delete_group() {
-  : ${1:?'Group was not defined'}
+  : "${1:?'Group was not defined'}"
   declare -r group="$1"
 
   if hash delgroup 2>/dev/null; then
