@@ -650,18 +650,18 @@ ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$execut
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
-if ! echo "$@" | grep -q 'node_modules'; then
+if echo "$@" | grep -q 'node_modules'; then
   log_warn "Since node-deb v0.6.0, 'node_modules' is automatically included and should not be specified on the" \
     "command line. Only production files are included via 'npm ls --prod'. Inclusion of 'node_modules' will" \
     'result in an error in future releases.'
 fi
 
-if ! echo "$@" | grep -q 'package.json'; then
+if echo "$@" | grep -q 'package.json'; then
   log_warn "Since node-deb v0.6.0, 'package.json' is automatically included and should not be specified on the" \
       'command line.'
 fi
 
-if ! echo "$@" | grep -q 'npm-shrinkwrap.json'; then
+if echo "$@" | grep -q 'npm-shrinkwrap.json'; then
   log_warn "Since node-deb v0.6.0, 'npm-shrinkwrap.json' is automatically included and should not be specified on the" \
       'command line.'
 fi
