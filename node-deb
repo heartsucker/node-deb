@@ -540,7 +540,7 @@ fi
 : ${template_default_variables:="$node_deb_dir/templates/default"}
 log_debug "The default variables file template has been set to: $template_default_variables"
 
-deb_dir="${package_name}_${package_version}_${arch}"
+deb_dir="${package_name}_${package_version}_${architecture}"
 
 finish() {
   if [ $no_delete_temp -ne 1 ]; then
