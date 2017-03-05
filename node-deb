@@ -685,7 +685,7 @@ find "$@" -type f -print0 | {
 
 if [ -d "$source_dir/node_modules" ]; then
   npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
-    while IFS="\n" -r -d dir; do
+    while IFS="\n" read -r -d '' dir; do
       log_debug "Copying dir: $dir"
       cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
     done
