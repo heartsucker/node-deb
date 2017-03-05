@@ -1,6 +1,6 @@
 # CHANGELOG
 
-#### unreleased
+#### 0.6.0 2017-03-05
 - Changed
   - Automatically include `package.json`, `npm-shrinkwrap.json`, and `node_modules`. These no longer need to be
     specified on the command line.
