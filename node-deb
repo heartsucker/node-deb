@@ -177,6 +177,12 @@ while [ -n "$1" ]; do
       package_name="$value"
       shift
       ;;
+    -o | --output-deb-name)
+      # HELPDOC: The name of the Debian binary package file (default: 'node_deb.output_deb_name' then dpkg-deb default)
+      zero_check "$value" "$param"
+      output_deb_name="$value"
+      shift
+      ;;
     --no-rebuild)
       # HELPDOC: On package installation, do not attempt `npm rebuild`.
       no_rebuild=1
@@ -351,6 +357,15 @@ if [ -z "$package_name" ]; then
   fi
 fi
 log_debug "The package name has been set to: $package_name"
+
+# Set the output deb name
+if [ -z "$output_deb_name" ]; then
+  output_deb_name="$(jq -r '.node_deb.output_deb_name' package.json)"
+  if [[ "$output_deb_name" == 'null' ]]; then
+    output_deb_name=""
+  fi
+fi
+log_debug "The deb filename name has been set to: ${output_deb_name:-dbkg-deb default}"
 
 # Set the package version
 if [ -z "$package_version" ]; then
@@ -723,6 +738,10 @@ else
 fi
 
 log_info 'Building Debian package'
-fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
+if [[ -z "$output_deb_name" ]]; then
+  fakeroot dpkg-deb --build "$deb_dir" > '/dev/null'
+else
+  fakeroot dpkg-deb --build "$deb_dir" "$output_deb_name" > '/dev/null'
+fi
 log_info 'Debian package built.'
 exit 0
