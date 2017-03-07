@@ -528,7 +528,7 @@ if [ -z "$template_upstart" ]; then
   fi
 fi
 : ${template_upstart:="$node_deb_dir/templates/upstart.conf"}
-log_debug "The upstart template has been set to: $template_prerm"
+log_debug "The upstart template has been set to: $template_upstart"
 
 # Set default variables (upstart) conf template
 if [ -z "$template_default_variables" ]; then

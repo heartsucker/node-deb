@@ -32,14 +32,14 @@ delete_group() {
 }
 
 case "$1" in
-   upgrade|remove|failed-upgrade|abort-upgrade|abort-install|disappear)
-   ;;
-   purge)
-      delete_user {{ node_deb_user }}
-      delete_group {{ node_deb_group }}
-      rm -rf '/var/log/{{ node_deb_package_name }}'
-   ;;
-   *)
-      echo "postinst called with unknown argument '$1'"
-   ;;
+  upgrade|remove|failed-upgrade|abort-upgrade|abort-install|disappear)
+    ;;
+  purge)
+    delete_user '{{ node_deb_user }}'
+    delete_group '{{ node_deb_group }}'
+    rm -rf '/var/log/{{ node_deb_package_name }}'
+    ;;
+  *)
+    echo "postinst called with unknown argument '$1'"
+    ;;
 esac
