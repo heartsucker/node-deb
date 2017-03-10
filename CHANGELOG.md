@@ -1,8 +1,14 @@
 # CHANGELOG
 
+#### unreleased
+- Fixed
+  - More minor `bash` errors.
+- Added
+  - `--output-deb-name` option to change the name of the generated debian package.
+
 #### 0.6.1 2017-03-05
 - Fixed
-  - Miscellaneous bash errors.
+  - Miscellaneous `bash` errors.
 
 #### 0.6.0 2017-03-05
 - Changed
