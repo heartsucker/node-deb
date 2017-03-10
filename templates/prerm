@@ -7,7 +7,7 @@ declare -r init_type='{{ node_deb_init }}'
 declare -r service_name='{{ node_deb_package_name }}'
 
 if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' || "$init_type" == 'upstart' ]]; then
-  if hash systemctl 1> /dev/null; then
+  if hash systemctl 2> /dev/null; then
     systemctl disable "$service_name.service" && \
     systemctl stop "$service_name.service" || \
     echo "$service_name wasn't even running!"
