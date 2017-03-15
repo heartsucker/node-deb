@@ -26,7 +26,8 @@
     "package",
     "packaging",
     "upstart",
-    "systemd"
+    "systemd",
+    "system v"
   ],
   "preferGlobal": true,
   "private": false,
