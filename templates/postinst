@@ -56,12 +56,19 @@ start_service () {
       } || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
     fi
   elif hash service 2> /dev/null; then
-    if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
+    if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' || "$init_type" == 'sysv' ]]; then
       service "$service_name" start || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
     fi
   elif hash start 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
       start "$service_name" || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
+    fi
+  elif hash update-rc.d 2> /dev/null; then
+    if [[ "$init_type" == 'auto' || "$init_type" == 'sysv' ]]; then
+      {
+        update-rc.d "$service_name" defaults && \
+        "/etc/init.d/$service_name" start
+      } || echo "$service_name could not be registered or started"  # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
     fi
   else
     # using `echo` to ensure script exits with 0. Failure to start is not failure to install
@@ -92,6 +99,6 @@ mkdir -p '/var/log/{{ node_deb_package_name }}'
 
 chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
 
-if [[ "$init_type" == 'auto' ]] || [[ "$init_type" == 'systemd' ]] || [[ "$init_type" == 'upstart' ]]; then
+if [[ "$init_type" == 'auto' ]] || [[ "$init_type" == 'systemd' ]] || [[ "$init_type" == 'upstart' ]] || [[ "$init_type" == 'sysv' ]]; then
   start_service '{{ node_deb_package_name }}'
 fi
