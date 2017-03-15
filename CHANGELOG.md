@@ -1,6 +1,6 @@
 # CHANGELOG
 
-#### unreleased
+#### 0.7.0 2017-03-15
 - Fixed
   - More minor `bash` errors.
 - Added
