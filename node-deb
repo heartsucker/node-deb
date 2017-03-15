@@ -160,7 +160,7 @@ while [ -n "$1" ]; do
       shift
       ;;
     -i | --init)
-      # HELPDOC: Init script type {auto, upstart, systemd, none}. 'auto' chooses upstart or systemd. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
+      # HELPDOC: Init script type {auto, upstart, systemd, sysv, none}. 'auto' chooses upstart, systemd or sysv. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
       zero_check "$value" "$param"
       init="$value"
       shift
@@ -288,6 +288,12 @@ while [ -n "$1" ]; do
       # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
       zero_check "$value" "$param"
       template_upstart="$value"
+      shift
+      ;;
+    --template-sysv-init)
+      # HELPDOC: Override System-V init script template (default: 'node_deb.templates.sysv_init' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_sysv="$value"
       shift
       ;;
     --template-default-variables)
@@ -459,10 +465,10 @@ if [ -z "$init" ]; then
   fi
 fi
 case $init in
-  auto|upstart|systemd|none)
+  auto|upstart|systemd|sysv|none)
     ;;
   *)
-    die "Invalid init type: $init. Must be 'auto', 'upstart', 'systemd', or 'none'"
+    die "Invalid init type: $init. Must be 'auto', 'upstart', 'systemd', 'sysv', or 'none'"
 esac
 log_debug "The init type has been set to: $init"
 
@@ -545,6 +551,16 @@ fi
 : ${template_upstart:="$node_deb_dir/templates/upstart.conf"}
 log_debug "The upstart template has been set to: $template_upstart"
 
+# set sysv init template
+if [ -z "$template_sysv" ]; then
+  template_sysv=$(jq -r '.node_deb.templates.sysv_init' package.json)
+  if [[ "$template_sysv" == 'null' ]]; then
+    template_sysv=''
+  fi
+fi
+: ${template_sysv:="$node_deb_dir/templates/sysv-init"}
+log_debug "The System V init script template has been set to: $template_sysv"
+
 # Set default variables (upstart) conf template
 if [ -z "$template_default_variables" ]; then
   template_default_variables=$(jq -r '.node_deb.templates.default_variables' package.json)
@@ -584,6 +600,10 @@ fi
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'systemd' ]]; then
   mkdir -p "$deb_dir/etc/systemd/system"
+fi
+
+if [[ "$init" == 'auto' ]] || [[ "$init" == 'sysv' ]]; then
+  mkdir -p "$deb_dir/etc/init.d"
 fi
 
 escape() {
@@ -654,6 +674,10 @@ fi
 
 if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
   replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service" '0644'
+fi
+
+if [ "$init" == 'auto' ] || [ "$init" == 'sysv' ]; then
+  replace_vars "$template_sysv" "$deb_dir/etc/init.d/$package_name" '0755'
 fi
 
 # Create conffiles for dpkg, add all files in etc
