@@ -723,10 +723,12 @@ find "$@" -type f -print0 | {
 }
 
 if [ -d "$source_dir/node_modules" ]; then
-  npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
-    while IFS="\n" read -r -d '' dir; do
+  npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's/^\/node_modules//g' | {
+    while IFS="\n" read -r dir; do
       log_debug "Copying dir: $dir"
-      cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
+      target_dir=$deb_dir/usr/share/$package_name/app/node_modules$dir
+      mkdir -p $target_dir
+      cp `find "$source_dir/node_modules$dir" -maxdepth 1 -type f` "$target_dir"
     done
   }
 fi
