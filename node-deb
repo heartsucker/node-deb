@@ -254,6 +254,12 @@ while [ -n "$1" ]; do
       template_control="$value"
       shift
       ;;
+    --template-default-variables)
+      # HELPDOC: Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_default_variables="$value"
+      shift
+      ;;
     --template-executable)
       # HELPDOC: Override executable template (default: 'node_deb.templates.executable' from package.json then built-in)
       zero_check "$value" "$param"
@@ -284,22 +290,16 @@ while [ -n "$1" ]; do
       template_systemd="$value"
       shift
       ;;
-    --template-upstart-conf)
-      # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
-      zero_check "$value" "$param"
-      template_upstart="$value"
-      shift
-      ;;
     --template-sysv-init)
       # HELPDOC: Override System-V init script template (default: 'node_deb.templates.sysv_init' from package.json then built-in)
       zero_check "$value" "$param"
       template_sysv="$value"
       shift
       ;;
-    --template-default-variables)
-      # HELPDOC: Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
+    --template-upstart-conf)
+      # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
       zero_check "$value" "$param"
-      template_default_variables="$value"
+      template_upstart="$value"
       shift
       ;;
 
