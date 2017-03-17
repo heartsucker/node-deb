@@ -74,6 +74,7 @@ package_dependencies=
 node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 init=
 no_rebuild=0
+force_node_modules=0
 
 # Other variables
 no_delete_temp=0
@@ -152,6 +153,10 @@ while [ -n "$1" ]; do
       # HELPDOC: A directory of files to be added without subustituions to the Debian package at the root of the filesystem (default: 'node_deb.extra_files')
       extra_files="$value"
       shift
+      ;;
+    --force-node-modules)
+      # HELPDOC: Use node_modules directory as it exists
+      force_node_modules=1
       ;;
     -g | --group)
       # HELPDOC:  The Unix group the process will run as (default: 'node_deb.group' from package.json then $user)
@@ -723,12 +728,16 @@ find "$@" -type f -print0 | {
 }
 
 if [ -d "$source_dir/node_modules" ]; then
-  npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
-    while IFS="\n" read -r -d '' dir; do
-      log_debug "Copying dir: $dir"
-      cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
-    done
-  }
+  if [[ "$force_node_modules" == "0" ]]; then
+    npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
+      while IFS="\n" read -r -d '' dir; do
+        log_debug "Copying dir: $dir"
+        cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
+      done
+    }
+  else
+    cp -rf "$source_dir/node_modules/" "$deb_dir/usr/share/$package_name/app/"
+  fi
 fi
 
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then

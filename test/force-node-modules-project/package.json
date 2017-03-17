@@ -1,0 +1,12 @@
+{
+  "name": "force-node-modules-project",
+  "version": "0.1.0",
+  "description": "foo",
+  "author": "foo <bar@baz.quux>",
+  "scripts": {
+    "test": "/bin/true"
+  },
+  "node_deb": {
+    "start_command": "/bin/true"
+  }
+}
