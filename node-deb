@@ -62,6 +62,7 @@ log_warn() {
 }
 
 # All the variables that are injected into templates
+architecture=
 package_name=
 package_version=
 executable_name=
@@ -77,7 +78,6 @@ no_rebuild=0
 
 # Other variables
 no_delete_temp=0
-architecture='all'
 
 usage() {
   # Local var because of grep
@@ -131,7 +131,13 @@ while [ -n "$1" ]; do
 
 # HELPDOC: Package options:
     --arch)
-      # HELPDOC: Set the architecture of the Debian package (default 'all')
+      log_warn 'The --arch option is deprecated. Please use --architecture. This will be removed in a future released.'
+      zero_check "$value" "$param"
+      architecture="$value"
+      shift
+      ;;
+    -a | --architecture)
+      # HELPDOC: Set the architecture of the Debian package (default: 'node_deb.architecture' from package.json then 'all')
       zero_check "$value" "$param"
       architecture="$value"
       shift
@@ -319,7 +325,7 @@ while [ -n "$1" ]; do
           'to ensure future compatibility.'
       ;;
     --show-changelog)
-      # HELPDOC: Display the changelog then exit
+      # HELPDOC: Display the CHANGELOG then exit
       show_file "$node_deb_dir/CHANGELOG.md"
       exit 0
       ;;
@@ -417,6 +423,15 @@ if [ -z "$package_dependencies" ]; then
 fi
 log_debug "The package dependencies has been set to: $package_dependencies"
 
+# Set the package architecture
+if [ -z "$architecture" ]; then
+  architecture=$(jq -r '.node_deb.architecture' package.json)
+  if [[ "$architecture" == 'null' ]]; then
+    architecture="all"
+  fi
+fi
+: ${architecture:='all'}
+log_debug "The package architecture has been set to: $architecture"
 
 # Set executable name
 if [ -z "$executable_name" ]; then

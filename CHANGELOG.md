@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### unreleased
+- Added
+  - Parsing of `node_deb.architecture` field in `package.json`
+
 #### 0.7.0 2017-03-15
 - Fixed
   - More minor `bash` errors.
