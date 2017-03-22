@@ -97,7 +97,7 @@ npm_install '{{ node_deb_package_name }}'
 
 mkdir -p '/var/log/{{ node_deb_package_name }}'
 
-chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
+chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}' '/usr/share/{{ node_deb_package_name }}/app'
 
 if [[ "$init_type" == 'auto' ]] || [[ "$init_type" == 'systemd' ]] || [[ "$init_type" == 'upstart' ]] || [[ "$init_type" == 'sysv' ]]; then
   start_service '{{ node_deb_package_name }}'
