@@ -168,5 +168,10 @@ More complete examples can be found by looking at `test.sh` and the correspondin
 
 These are all available through `apt` and `brew`.
 
+### Dev Requirements
+Tests are run via `docker`. This is also available through `apt` and `brew`.
+
 ## Contributing
 Please make all pull requests to the `develop` branch.
+
+Please make sure all pull requests pass the test suite locally.
