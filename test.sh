@@ -363,6 +363,37 @@ test-extra-files-project() {
   fi
 }
 
+test-force-node-modules() {
+  echo 'Running tests for force-node-modules'
+  declare -i is_success=1
+
+  cd "$_pwd/test/force-node-modules-project" || die 'cd error'
+
+  declare output
+  output=$(../../node-deb --no-delete-temp --force-node-modules -- app.js)
+
+  if [ "$?" -ne 0 ]; then
+    is_success=0
+  fi
+
+  dpkg_output=$(dpkg -c force-node-modules-project_0.1.0_all.deb)
+
+  if ! echo "$dpkg_output" | awk '{ print $NF }' | grep -Eq '^\./usr/share/force-node-modules-project/app/node_modules/module[1-2]/index.js$'; then
+    is_success=0
+    err 'Failure on checking node_modules includes as given'
+  fi
+
+  if [ "$is_success" -eq 1 ]; then
+    echo "Success for force-node-modules-project"
+    rm -rf "$_pwd/test/force-node-modules-project/force-node-modules-project_0.1.0_all*"
+  else
+    err "Failure for force-node-modules-project"
+    err "$output"
+    err "$dpkg_output"
+    : $((failures++))
+  fi
+}
+
 test-upstart-project() {
   echo 'Running tests for upstart-project'
   declare -r target_file='/var/log/upstart-project/TEST_OUTPUT'
@@ -543,6 +574,8 @@ else
   test-commandline-override-project
   echo '--------------------------'
   test-extra-files-project
+  echo '--------------------------'
+  test-force-node-modules
   echo '--------------------------'
   test-dog-food
   echo '--------------------------'
