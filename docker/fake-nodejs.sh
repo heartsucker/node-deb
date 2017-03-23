@@ -11,7 +11,7 @@ mkdir -p "$deb_dir/DEBIAN"
 
 cat > "$deb_dir/DEBIAN/control" <<-EOF
 Package: nodejs
-Version: 5.0.0
+Version: 6.0.0
 Section: base
 Priority: optional
 Architecture: all
