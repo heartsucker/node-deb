@@ -171,6 +171,14 @@ These are all available through `apt` and `brew`.
 ### Dev Requirements
 Tests are run via `docker`. This is also available through `apt` and `brew`.
 
+## Support
+
+`node-deb` only officially supports the currently supported LTS versions of Debian and Ubuntu. This includes both
+for building packages and deploying packages. At the time of this update, this translates to Debian Wheezy through
+Stretch and Ubuntu Precise through Xenial. Care has been taken to ensure this packages correctly on macOS, and macOS
+specific issues should still be reported.
+
+
 ## Contributing
 Please make all pull requests to the `develop` branch.
 
