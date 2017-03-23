@@ -21,3 +21,6 @@ stat "$output/usr/share/whitespace-project/app/whitespace folder/file1.js" > /de
 stat "$output/usr/share/whitespace-project/app/whitespace folder/file 2.js" > /dev/null
 stat "$output/usr/share/whitespace-project/app/whitespace folder/\"file 3\".js" > /dev/null
 stat "$output/usr/share/whitespace-project/app/whitespace folder/'file 4'.js" > /dev/null
+
+dpkg -i "$output.deb"
+apt-get purge -y whitespace-project

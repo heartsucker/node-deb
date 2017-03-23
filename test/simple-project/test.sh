@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -u
 
 cd "$(dirname $0)/app"
 declare -r output='simple-project_0.1.0_all'
@@ -26,4 +27,3 @@ fi
 
 dpkg -i "$output.deb"
 apt-get purge -y simple-project
-echo "Success for simple-project"

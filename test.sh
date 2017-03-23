@@ -9,7 +9,8 @@ declare -ar all_versions=('debian-stretch'
                           'ubuntu-precise')
 
 declare -ar all_tests=('simple-project'
-                       'whitespace-project')
+                       'whitespace-project'
+                       'node-deb-override-project')
 
 cur_dir="$(dirname $(readlink -f $0))"
 declare -r cur_dir
