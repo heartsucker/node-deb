@@ -28,5 +28,5 @@ for image in ${images[@]}; do
 done
 
 for image in ${images[@]}; do
-  : docker push heartsucker/node-deb-test:$image
+  docker push heartsucker/node-deb-test:$image
 done
