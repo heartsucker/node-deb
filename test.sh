@@ -8,7 +8,8 @@ declare -ar all_versions=('debian-stretch'
                           'ubuntu-trusty'
                           'ubuntu-precise')
 
-declare -ar all_tests=('simple-project')
+declare -ar all_tests=('simple-project'
+                       'whitespace-project')
 
 cur_dir="$(dirname $(readlink -f $0))"
 declare -r cur_dir

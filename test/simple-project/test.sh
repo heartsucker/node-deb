@@ -1,18 +1,18 @@
 #!/bin/bash
 set -e
 
+cd "$(dirname $0)/app"
+declare -r output='simple-project_0.1.0_all'
+
 finish() {
   rm -rf "$output" *.deb
 }
 
 trap 'finish' EXIT
 
-cd 'test/simple-project/app'
 ../../../node-deb --verbose \
                   --no-delete-temp \
                   -- app.js lib/
-
-declare -r output='simple-project_0.1.0_all'
 
 if ! grep -q 'Package: simple-project' "$output/DEBIAN/control"; then
   echo 'Package name was wrong'

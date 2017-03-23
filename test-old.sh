@@ -1,38 +1,5 @@
 #!/bin/bash
 
-test-whitespace-project() {
-  echo "Running tests for whitespace-project"
-  cd "$_pwd/test/whitespace-project" || die 'cd error'
-
-  declare -i is_success=1
-
-  declare output
-  output=$(../../node-deb --verbose -- 'whitespace file.js' 'whitespace folder' 2>&1)
-
-  if [ "$?" -ne 0 ]; then
-    is_success=0
-  fi
-
-  output+='\n'
-  output+=$(../../node-deb --verbose --  whitespace\ file.js whitespace\ folder 2>&1)
-  if [ "$?" -ne 0 ]; then
-    is_success=0
-  fi
-
-  if [[ $output == '*No such file or directory*' ]]; then
-    err 'There was an error with the test.'
-    err -e "$output"
-    err 'Unable to locate a directory. This is likely an error with `find`.'
-  fi
-
-  if [ "$is_success" -eq 1 ]; then
-    echo "Success for whitespace-project"
-  else
-    err "Failure for whitespace-project"
-    : $((failures++))
-  fi
-}
-
 test-node-deb-override-project() {
   echo "Running tests for node-deb-override-project"
   cd "$_pwd/test/node-deb-override-project" || die 'cd error'
