@@ -1,43 +1,5 @@
 #!/bin/bash
 
-test-extra-files-project() {
-  echo 'Running tests for extra-files-project'
-  declare -i is_success=1
-
-  cd "$_pwd/test/extra-files-project" || die 'cd error'
-
-  output=$(../../node-deb --no-delete-temp \
-    --verbose \
-    --extra-files extra-files \
-    -- foo.sh)
-
-  if [ "$?" -ne 0 ]; then
-    is_success=0
-  fi
-
-  dpkg_output=$(dpkg -c extra-files-project_0.1.0_all.deb)
-
-  if echo "$dpkg_output" | grep -Eq '/extra-files/'; then
-    is_success=0
-    err 'Extra files contained bad prefix'
-  fi
-
-  if ! echo "$dpkg_output" | awk '{ print $NF }' | grep -Eq '^\./var/lib/extra-files-project/bar\.txt$'; then
-    is_success=0
-    err 'Extra files did not contain the target file'
-  fi
-
-  if [ "$is_success" -eq 1 ]; then
-    echo "Success for extra-files-project"
-    rm -rf "$_pwd/test/extra-files-project/extra-files-project_0.1.0_all*"
-  else
-    err "Failure for extra-files-project"
-    err "$output"
-    err "$dpkg_output"
-    : $((failures++))
-  fi
-}
-
 test-upstart-project() {
   echo 'Running tests for upstart-project'
   declare -r target_file='/var/log/upstart-project/TEST_OUTPUT'

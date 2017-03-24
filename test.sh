@@ -11,7 +11,8 @@ declare -ar all_versions=('debian-stretch'
 declare -ar all_tests=('simple'
                        'whitespace'
                        'node-deb-override'
-                       'commandline-override')
+                       'commandline-override'
+                       'extra-files')
 
 fail() {
     printf '\n\033[31;1mTest failed!\033[0m\n\n'
