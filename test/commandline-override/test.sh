@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -u
+set -euo pipefail
 
 cd "$(dirname $0)/app"
 declare -r output='overridden-package-name_0.1.1_all'

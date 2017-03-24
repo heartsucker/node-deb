@@ -128,35 +128,3 @@ test-redirect-project() {
     echo 'Success for redirect-project'
   fi
 }
-
-test-dog-food() {
-  echo 'Running the dog food test'
-  cd "$_pwd" || die 'cd error'
-  declare -i is_success=1
-
-  if ! ./node-deb --verbose --no-delete-temp -- node-deb templates/; then
-    is_success=0
-  fi
-
-  declare -r node_deb_version=$(jq -r '.version' "./package.json")
-  declare -r output_dir="node-deb_${node_deb_version}_all/"
-
-  if [ $(find "$output_dir" -name 'node-deb' -type f | wc -l) -lt 1 ]; then
-    is_success=0
-    err "Couldn't find node-deb in output"
-  fi
-
-  if [ $(find "$output_dir" -name 'templates' -type d | wc -l) -lt 1 ] || [ $(find "$output_dir/" -type f | grep 'templates' | wc -l) -lt 1 ]; then
-    is_success=0
-    err "Couldn't find templates"
-  fi
-
-  rm -rf "$output_dir"
-
-  if [ "$is_success" -ne 1 ]; then
-    : $((failures++))
-    err 'Failure for the dog food test'
-  else
-    echo 'Success for the dog food test'
-  fi
-}

@@ -59,6 +59,17 @@ for tst in "${all_tests[@]}"; do
   done
 done
 
+for image in "${all_versions[@]}"; do
+  print_yellow "Running dog food test for image $image"
+  docker run --rm \
+             --volume "$cur_dir:/src" \
+             --workdir '/src' \
+             "heartsucker/node-deb-test:$image" \
+             "/src/test/dog-food.sh"
+  print_green "Success for test dog-food.sh for image $image"
+  print_divider
+done
+
 # clear the trap
 trap - EXIT
 trap

@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -u
+set -euo pipefail
 
 cd "$(dirname $0)/app"
 declare -r output='extra-files_0.1.0_all'
