@@ -25,6 +25,7 @@ grep -q 'PRERM_OVERRIDE' "$output/DEBIAN/prerm"
 grep -q 'SYSTEMD_SERVICE_OVERRIDE' "$output/etc/systemd/system/overridden-package-name.service"
 grep -q 'UPSTART_CONF_OVERRIDE' "$output/etc/init/overridden-package-name.conf"
 grep -q 'EXECUTABLE_OVERRIDE' "$output/usr/share/overridden-package-name/bin/overridden-executable-name"
+# TODO add more tests
 
 dpkg -i "$output.deb"
 apt-get purge -y overridden-package-name

@@ -1,58 +1,5 @@
 #!/bin/bash
 
-test-commandline-override-project() {
-  echo "Running tests for commandline-override-project"
-  cd "$_pwd/test/commandline-override-project" || die 'cd error'
-
-  declare -i is_success=1
-  declare output
-
-  output=$(../../node-deb --no-delete-temp \
-    --verbose \
-    -n overridden-package-name \
-    -v 0.1.1 \
-    -u overridden-user \
-    -g overridden-group \
-    -m 'overridden maintainer' \
-    -d 'overridden description' \
-    -- app.js lib/)
-
-  if [ "$?" -ne 0 ]; then
-    is_success=0
-    err "$output"
-  fi
-
-  output_dir='overridden-package-name_0.1.1_all/'
-
-  if ! grep -q 'Package: overridden-package-name' "$output_dir/DEBIAN/control"; then
-    err 'Package name was wrong'
-    is_success=0
-  fi
-
-  if ! grep -q 'Version: 0.1.1' "$output_dir/DEBIAN/control"; then
-    err 'Package version name was wrong'
-    is_success=0
-  fi
-
-  if ! grep -q 'Maintainer: overridden maintainer' "$output_dir/DEBIAN/control"; then
-    err 'Package maintainer was wrong'
-    is_success=0
-  fi
-
-  if ! grep -q 'Description: overridden description' "$output_dir/DEBIAN/control"; then
-    err 'Package description was wrong'
-    is_success=0
-  fi
-
-  if [ "$is_success" -eq 1 ]; then
-    echo "Success for simple-project"
-    rm -rf "$output_dir"
-  else
-    err "Failure for simple-project"
-    : $((failures++))
-  fi
-}
-
 test-extra-files-project() {
   echo 'Running tests for extra-files-project'
   declare -i is_success=1
