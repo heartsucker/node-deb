@@ -1,0 +1,16 @@
+FROM ubuntu-upstart:trusty
+
+RUN apt-get update && \
+    apt-get install -y fakeroot jq && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY fake-nodejs.sh /tmp
+RUN /tmp/fake-nodejs.sh
+
+COPY ./node /opt/node
+RUN ln -s /opt/node/bin/node /usr/bin/node
+RUN ln -s /opt/node/bin/npm  /usr/bin/npm
+
+RUN rm -rf /tmp/*
+
+CMD ["/sbin/init"]

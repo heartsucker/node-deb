@@ -8,12 +8,12 @@ delete_user() {
   : "${1:?'User was not defined'}"
   declare -r user="$1"
 
-  if hash deluser 2>/dev/null; then
-    deluser --quiet --system "$user" > /dev/null || echo "WARNING: Failed to delete user $user"
-  elif hash userdel 2>/dev/null; then
-    userdel "$user" || echo "WARNING: Failed to delete user $user"
-  els
-    echo "WARNING: Could not delete user $user . No suitable program (deluser, userdel) found"
+  if hash deluser 2> /dev/null; then
+    deluser --quiet --system "$user" || echo "WARN: Failed to delete user $user"
+  elif hash userdel 2> /dev/null; then
+    userdel "$user" || echo "WARN: Failed to delete user $user"
+  else
+    echo "WARN: Could not delete user $user . No suitable program (deluser, userdel) found"
   fi
 }
 
@@ -22,12 +22,12 @@ delete_group() {
   : "${1:?'Group was not defined'}"
   declare -r group="$1"
 
-  if hash delgroup 2>/dev/null; then
-    delgroup --quiet --system "$group" > /dev/null || echo "WARNING: Failed to delete group $group"
-  elif hash groupdel 2>/dev/null; then
-    groupdel "$group" || echo "WARNING: Failed to delete group $group"
+  if hash delgroup 2> /dev/null; then
+    delgroup --quiet --system "$group" || echo "WARN: Failed to delete group $group"
+  elif hash groupdel 2> /dev/null; then
+    groupdel "$group" || echo "WARN: Failed to delete group $group"
   else
-    echo "WARNING: Could not delete user $group . No suitable program (delgroup, groupdel) found"
+    echo "WARN: Could not delete user $group . No suitable program (delgroup, groupdel) found"
   fi
 }
 
