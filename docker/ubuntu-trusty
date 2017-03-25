@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu-upstart:trusty
 
 RUN apt-get update && \
     apt-get install -y fakeroot jq && \
@@ -13,4 +13,4 @@ RUN ln -s /opt/node/bin/npm  /usr/bin/npm
 
 RUN rm -rf /tmp/*
 
-CMD ["bash"]
+CMD ["/sbin/init"]

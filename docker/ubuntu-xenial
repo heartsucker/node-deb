@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM solita/ubuntu-systemd:16.04
 
 RUN apt-get update && \
     apt-get install -y fakeroot jq && \

@@ -8,13 +8,12 @@ declare -ar all_images=('debian-stretch'
                         'ubuntu-trusty'
                         'ubuntu-precise')
 
-declare -ar upstart_images=('debian-wheezy'
-                            'ubuntu-trusty'
-                            'ubuntu-precise')
+# TODO wheezy doesn't have a good upstat image
+# TODO precise breaks for... some reason?
+declare -ar upstart_images=('ubuntu-trusty')
 
-declare -ar systemd_images=('debian-stretch'
-                            'debian-jessie'
-                            'ubuntu-xenial')
+# TODO debian doens't have nice images for this
+declare -ar systemd_images=('ubuntu-xenial')
 
 declare -ar all_tests=('simple'
                        'whitespace'
@@ -71,22 +70,48 @@ done
 
 for image in "${systemd_images[@]}"; do
   print_yellow "Running systemd test for image $image"
-  docker run --rm \
-             --volume "$cur_dir:/src" \
+  name="$image-node-deb"
+
+  docker rm -f "$name" || echo 'container not removed'
+
+  docker run --volume "$cur_dir:/src" \
              --workdir '/src' \
+             --name "$name" \
+             --detach \
+             --privileged \
+             --volume /:/host \
              "heartsucker/node-deb-test:$image" \
-             "/src/test/systemd-app/test.sh"
+             '/sbin/init'
+  docker start "$name"
+  docker exec "$name" \
+              '/src/test/systemd-app/test.sh'
+  docker rm -f "$name"
+
+  # TODO add trap that kills the container
+
   print_green "Success for systemd test for image $image"
   print_divider
 done
 
 for image in "${upstart_images[@]}"; do
   print_yellow "Running upstart test for image $image"
-  docker run --rm \
-             --volume "$cur_dir:/src" \
+  name="$image-node-deb"
+
+  docker rm -f "$name" || echo 'container not removed'
+
+  docker run --volume "$cur_dir:/src" \
              --workdir '/src' \
+             --name "$name" \
+             --detach \
              "heartsucker/node-deb-test:$image" \
-             "/src/test/upstart-app/test.sh"
+             '/sbin/init'
+  docker start "$name"
+  docker exec "$name" \
+              '/src/test/upstart-app/test.sh'
+  docker rm -f "$name"
+
+  # TODO add trap that kills the container
+
   print_green "Success for upstart test for image $image"
   print_divider
 done

@@ -15,11 +15,13 @@ declare -r node_out='./node'
 declare -i push=0
 
 while [ -n "$1" ]; do
+  if [ -z "$1" ]; then break; fi
   param="$1"
   value="$2"
   case $param in
     --push)
       push=1
+      shift
     ;;
     *)
       echo "Unknown arg: $param"
