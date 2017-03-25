@@ -13,7 +13,8 @@ declare -ar all_tests=('simple'
                        'node-deb-override'
                        'commandline-override'
                        'extra-files'
-                       'redirect')
+                       'redirect'
+                       'no-init')
 
 fail() {
     printf '\n\033[31;1mTest failed!\033[0m\n\n'
@@ -71,7 +72,7 @@ for image in "${all_versions[@]}"; do
   print_divider
 done
 
-# clear the trap
+# clear the trap so we don't print the fail message
 trap - EXIT
 trap
 

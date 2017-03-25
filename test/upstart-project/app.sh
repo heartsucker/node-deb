@@ -1,11 +1,10 @@
 #!/bin/bash
-set -ex
+set -eu
 
-target_file='/var/log/upstart-project/TEST_OUTPUT'
+declare -r target_file='/var/log/upstart-project/TEST_OUTPUT'
 
 rm -rf "$target_file"
 
 while true; do
   touch "$target_file"
-  sleep 1
 done

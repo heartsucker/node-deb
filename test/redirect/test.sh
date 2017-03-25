@@ -11,7 +11,6 @@ finish() {
 trap 'finish' EXIT
 
 ../../../node-deb --verbose \
-                  --no-delete-temp \
                   -- app.sh
 
 declare -r target_file='/var/log/redirect/TEST_OUTPUT'

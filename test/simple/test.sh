@@ -14,15 +14,8 @@ trap 'finish' EXIT
                   --no-delete-temp \
                   -- app.js lib/
 
-if ! grep -q 'Package: simple' "$output/DEBIAN/control"; then
-  echo 'Package name was wrong'
-  exit 1
-fi
-
-if ! grep -q 'Version: 0.1.0' "$output/DEBIAN/control"; then
-  echo 'Package version was wrong'
-  exit 1
-fi
+grep -q 'Package: simple' "$output/DEBIAN/control"
+grep -q 'Version: 0.1.0' "$output/DEBIAN/control"
 
 dpkg -i "$output.deb"
 apt-get purge -y simple
