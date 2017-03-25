@@ -1,12 +1,20 @@
 #!/bin/bash
 set -e
 
-declare -ar all_versions=('debian-stretch'
-                          'debian-jessie'
-                          'debian-wheezy'
-                          'ubuntu-xenial'
-                          'ubuntu-trusty'
-                          'ubuntu-precise')
+declare -ar all_images=('debian-stretch'
+                        'debian-jessie'
+                        'debian-wheezy'
+                        'ubuntu-xenial'
+                        'ubuntu-trusty'
+                        'ubuntu-precise')
+
+declare -ar upstart_images=('debian-wheezy'
+                            'ubuntu-trusty'
+                            'ubuntu-precise')
+
+declare -ar systemd_images=('debian-stretch'
+                            'debian-jessie'
+                            'ubuntu-xenial')
 
 declare -ar all_tests=('simple'
                        'whitespace'
@@ -14,8 +22,7 @@ declare -ar all_tests=('simple'
                        'commandline-override'
                        'extra-files'
                        'redirect'
-                       'no-init'
-                       'upstart-app')
+                       'no-init')
 
 fail() {
     printf '\n\033[31;1mTest failed!\033[0m\n\n'
@@ -50,7 +57,7 @@ print_green 'CLI check success'
 print_divider
 
 for tst in "${all_tests[@]}"; do
-  for image in "${all_versions[@]}"; do
+  for image in "${all_images[@]}"; do
     print_yellow "Running test $tst for image $image"
     docker run --rm \
                --volume "$cur_dir:/src" \
@@ -62,7 +69,29 @@ for tst in "${all_tests[@]}"; do
   done
 done
 
-for image in "${all_versions[@]}"; do
+for image in "${upstart_images[@]}"; do
+  print_yellow "Running upstart test for image $image"
+  docker run --rm \
+             --volume "$cur_dir:/src" \
+             --workdir '/src' \
+             "heartsucker/node-deb-test:$image" \
+             "/src/test/upstart-app/test.sh"
+  print_green "Success for upstart test for image $image"
+  print_divider
+done
+
+for image in "${systemd_images[@]}"; do
+  print_yellow "Running systemd test for image $image"
+  docker run --rm \
+             --volume "$cur_dir:/src" \
+             --workdir '/src' \
+             "heartsucker/node-deb-test:$image" \
+             "/src/test/systemd-app/test.sh"
+  print_green "Success for systemd test for image $image"
+  print_divider
+done
+
+for image in "${all_images[@]}"; do
   print_yellow "Running dog food test for image $image"
   docker run --rm \
              --volume "$cur_dir:/src" \

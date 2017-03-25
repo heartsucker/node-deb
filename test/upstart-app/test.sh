@@ -26,7 +26,7 @@ if hash systemctl 2> /dev/null; then
 elif hash service 2> /dev/null; then
   service upstart-app stop
 else
-    echo "Can't stop service"
+  echo "Can't stop service"
 fi
 
 rm -rf "$target_file"

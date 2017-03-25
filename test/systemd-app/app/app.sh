@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-declare -r target_file='/var/log/systemd-project/TEST_OUTPUT'
+declare -r target_file='/var/log/systemd-app/TEST_OUTPUT'
 
 rm -rf "$target_file"
 
