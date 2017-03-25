@@ -69,17 +69,6 @@ for tst in "${all_tests[@]}"; do
   done
 done
 
-for image in "${upstart_images[@]}"; do
-  print_yellow "Running upstart test for image $image"
-  docker run --rm \
-             --volume "$cur_dir:/src" \
-             --workdir '/src' \
-             "heartsucker/node-deb-test:$image" \
-             "/src/test/upstart-app/test.sh"
-  print_green "Success for upstart test for image $image"
-  print_divider
-done
-
 for image in "${systemd_images[@]}"; do
   print_yellow "Running systemd test for image $image"
   docker run --rm \
@@ -88,6 +77,17 @@ for image in "${systemd_images[@]}"; do
              "heartsucker/node-deb-test:$image" \
              "/src/test/systemd-app/test.sh"
   print_green "Success for systemd test for image $image"
+  print_divider
+done
+
+for image in "${upstart_images[@]}"; do
+  print_yellow "Running upstart test for image $image"
+  docker run --rm \
+             --volume "$cur_dir:/src" \
+             --workdir '/src' \
+             "heartsucker/node-deb-test:$image" \
+             "/src/test/upstart-app/test.sh"
+  print_green "Success for upstart test for image $image"
   print_divider
 done
 

@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname $0)/app"
 source '../../test-helpers.sh'
 
-declare -r output='upstart-app_0.1.0_all'
+declare -r output='systemd-app_0.1.0_all'
 declare -r target_file='/var/log/systemd-app/TEST_OUTPUT'
 
 finish() {
@@ -19,7 +19,6 @@ trap 'finish' EXIT
 rm -rf "$target_file"
 dpkg -i "$output.deb"
 sleep 1
-rm -rf "$target_file"
 [ -f "$target_file" ] || die 'Target file did not exist when it should have'
 
 systemctl stop systemd-app

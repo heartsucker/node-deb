@@ -21,13 +21,7 @@ dpkg -i "$output.deb"
 sleep 1
 [ -f "$target_file" ] || die 'Target file not present when it should have been'
 
-if hash systemctl 2> /dev/null; then
-  systemctl stop upstart-app
-elif hash service 2> /dev/null; then
-  service upstart-app stop
-else
-  echo "Can't stop service"
-fi
+service upstart-app stop
 
 rm -rf "$target_file"
 sleep 1
