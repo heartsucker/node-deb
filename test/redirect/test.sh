@@ -2,6 +2,8 @@
 set -euo pipefail
 
 cd "$(dirname $0)/app"
+source '../../test-helpers.sh'
+
 declare -r output='redirect_0.1.0_all'
 
 finish() {
@@ -20,11 +22,11 @@ declare -r target_file_redirect='/var/log/redirect/TEST_OUTPUT_REDIRECT'
 
 dpkg -i "$output.deb"
 
-redirect
-[ -f "$target_file" ]
-[ -f "$target_file_stdout" ]
-[ -f "$target_file_stderr" ]
-[ -f "$target_file_redirect" ]
-! grep -q '{{' "$(which redirect)"
+redirect                           || die 'Could not run redirect script'
+[ -f "$target_file" ]              || die 'Target file not present'
+[ -f "$target_file_stdout" ]       || die 'stdout target file not present'
+[ -f "$target_file_stderr" ]       || die 'stderr target file not present'
+[ -f "$target_file_redirect" ]     || die 'redirect target file not present'
+! grep -q '{{' "$(which redirect)" || die 'Variable interpolator still present in template'
 
 apt-get purge -y redirect

@@ -2,6 +2,8 @@
 set -euo pipefail
 
 cd "$(dirname $0)/app"
+source '../../test-helpers.sh'
+
 declare -r output='overridden-package-name_0.1.1_all'
 
 finish() {
@@ -20,10 +22,14 @@ trap 'finish' EXIT
                   -d 'overridden description' \
                   -- app.js lib/
 
-grep -q 'Package: overridden-package-name' "$output/DEBIAN/control"
-grep -q 'Version: 0.1.1' "$output/DEBIAN/control"
-grep -q 'Maintainer: overridden maintainer' "$output/DEBIAN/control"
-grep -q 'Description: overridden description' "$output/DEBIAN/control"
+grep -q 'Package: overridden-package-name' "$output/DEBIAN/control" \
+  || die 'Package name not overridden'
+grep -q 'Version: 0.1.1' "$output/DEBIAN/control" \
+  || die 'Version not overridden'
+grep -q 'Maintainer: overridden maintainer' "$output/DEBIAN/control" \
+  || die 'Maintainer not overridden'
+grep -q 'Description: overridden description' "$output/DEBIAN/control" \
+  || die 'Description not overridden'
 # TODO more checks
 # TODO add node_deb object overrides to ensure these beat them
 

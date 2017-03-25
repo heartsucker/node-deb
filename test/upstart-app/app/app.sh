@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-declare -r target_file='/var/log/upstart-project/TEST_OUTPUT'
+declare -r target_file='/var/log/upstart-app/TEST_OUTPUT'
 
 rm -rf "$target_file"
 

@@ -14,7 +14,8 @@ declare -ar all_tests=('simple'
                        'commandline-override'
                        'extra-files'
                        'redirect'
-                       'no-init')
+                       'no-init'
+                       'upstart-app')
 
 fail() {
     printf '\n\033[31;1mTest failed!\033[0m\n\n'
