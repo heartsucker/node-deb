@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -o pipefail
+set -eo pipefail
 
 die() {
   echo 'ERROR:' "$@" >&2
@@ -605,7 +604,6 @@ mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
          "$deb_dir/etc/default" \
          "$deb_dir/usr/share/$package_name/app" \
-         "$deb_dir/usr/share/$package_name/app/node_modules" \
          "$deb_dir/usr/share/$package_name/bin" \
          "$deb_dir/usr/bin"
 
@@ -738,12 +736,8 @@ find "$@" -type f -print0 | {
 }
 
 if [ -d "$source_dir/node_modules" ]; then
-  npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
-    while IFS="\n" read -r -d '' dir; do
-      log_debug "Copying dir: $dir"
-      cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
-    done
-  }
+  log_debug 'Copying dir: node_modules'
+  cp -rf "$source_dir/node_modules/" "$deb_dir/usr/share/$package_name/app/"
 fi
 
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then

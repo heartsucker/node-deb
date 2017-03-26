@@ -1,7 +1,7 @@
 FROM debian:stretch
 
 RUN apt-get update && \
-    apt-get install -y fakeroot jq && \
+    apt-get install -y fakeroot jq curl && \
     rm -rf /var/lib/apt/lists/*
 
 COPY fake-nodejs.sh /tmp
