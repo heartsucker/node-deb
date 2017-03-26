@@ -1,0 +1,13 @@
+{
+  "name": "sysv-app",
+  "version": "0.1.0",
+  "description": "foo",
+  "author": "foo <bar@baz.quux>",
+  "scripts": {
+    "start": "./app.sh",
+    "test": "/bin/true"
+  },
+  "node_deb": {
+    "init": "sysv"
+  }
+}

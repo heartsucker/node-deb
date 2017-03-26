@@ -14,6 +14,7 @@ finish() {
                   -- app.sh
 
 dpkg -i "$output.deb"
+sleep 1
 
 declare -r target_file='/var/log/no-init/TEST_OUTPUT'
 

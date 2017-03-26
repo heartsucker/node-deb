@@ -12,8 +12,14 @@ declare -ar all_images=('debian-stretch'
 # TODO precise breaks for... some reason?
 declare -ar upstart_images=('ubuntu-trusty')
 
-# TODO debian doens't have nice images for this
+# TODO debian doesn't have nice images for this
 declare -ar systemd_images=('ubuntu-xenial')
+
+# TODO why doesn't this work in jessie / xenial?
+declare -ar sysv_images=('debian-stretch'
+                         'debian-wheezy'
+                         'ubuntu-trusty'
+                         'ubuntu-precise')
 
 declare -ar all_tests=('simple'
                        'whitespace'
@@ -113,6 +119,21 @@ for image in "${upstart_images[@]}"; do
   # TODO add trap that kills the container
 
   print_green "Success for upstart test for image $image"
+  print_divider
+done
+
+for image in "${sysv_images[@]}"; do
+  print_yellow "Running sysv test for image $image"
+  name="$image-node-deb"
+
+  docker run --rm \
+             --volume "$cur_dir:/src" \
+             --workdir '/src' \
+             --name "$name" \
+             "heartsucker/node-deb-test:$image" \
+             '/src/test/sysv-app/test.sh'
+
+  print_green "Success for sysv test for image $image"
   print_divider
 done
 
