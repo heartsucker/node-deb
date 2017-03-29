@@ -19,7 +19,8 @@ npm install
                   --no-delete-temp \
                   -- app.js
 
-# TODO check that node-deb isn't in the node_modules in the outpt
+! find "$output/usr/share/real-app/app/node_modules/" -name 'node-deb' 2> /dev/null || \
+  die 'node-deb found in node_modules output'
 
 dpkg -i "$output.deb"
 
