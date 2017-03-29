@@ -33,6 +33,13 @@
   "private": false,
   "license": "MIT",
   "homepage": "https://github.com/heartsucker/node-deb",
+  "files": [
+    "node-deb",
+    "templates",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "node_deb": {
     "init": "none",
     "templates": {
