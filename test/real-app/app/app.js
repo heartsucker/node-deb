@@ -7,6 +7,9 @@ app.get('/', function (req, res) {
   // one of the dependencies.
   var ip = req.connection.remoteAddress;
   res.send('SUCCESS\n')
+
+  // exit after a single response because the containers don't have ps/kill/pkill etc.
+  process.exit()
 })
 
 app.listen(8080)

@@ -70,7 +70,7 @@ for tst in "${all_tests[@]}"; do
                --workdir '/src' \
                "heartsucker/node-deb-test:$image" \
                "/src/test/$tst/test.sh"
-    print_green "Success for test $test for image $image"
+    print_green "Success for test $tst for image $image"
     print_divider
   done
 done

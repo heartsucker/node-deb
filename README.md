@@ -28,8 +28,8 @@ You do not need to add anything to your `package.json` as it uses sane defaults.
 two options for overrides: command line options, or the JSON object `node_deb` at the top level of your `package.json`. A
 full explanation of the different options can be found by running `node-deb --help`.
 
-By default, if any of the following files exist, the will be included in the Debian package: `package.json`,
-`npm-shrinkwrap.json`, and `node_modules/`.
+By default, if any of the following files exist, the will be included in the Debian package: `package.json` and
+`npm-shrinkwrap.json`.
 
 For example, here are some sample `node_deb` overrides. The full list can be found by running
 `node-deb --list-json-overrides`.
@@ -160,6 +160,23 @@ This can have serious consequences if the user or group is shared by other appli
 `node-deb` can Debian-package itself. Just run `npm run node-deb`.
 
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
+
+### Options
+
+This section incldues addtional details about the more advanced functionality of `node-deb`
+
+#### `--install-strategy`
+
+The install strategy determines how dependencies in `node_modules` are included in the final Debian package.
+
+- `auto`: This attempts to take a minimal subset of package from the `node_modules` director using
+  `npm ls --prod`. If this is not possible, it falls back to the `copy` method. On install, if `node_modules` is
+  present, it runs `npm rebuild --prod`. If `node_modules` is not present, it runs `npm install --prod`. If `npm`
+  is not present, it issues a warning that dependencies may be missing and continues with the Debian package installation.
+- `copy`: This runs a blind `cp -rf` on the `node_modules` directory and includes everything in the Debian package.
+  No actions are taking during package installation.
+- `npm-install`: This option does not include the `node_module` in the Debian package and runs
+  `npm install --production` as part of the `postinst` maintater script.
 
 ## Requirements
 - `dpkg`

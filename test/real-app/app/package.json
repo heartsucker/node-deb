@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "node-deb": "*"
+  },
+  "node_deb": {
+    "init": "none"
   }
 }

@@ -5,6 +5,7 @@ set -o pipefail
 
 declare -r init_type='{{ node_deb_init }}'
 declare -ri no_rebuild='{{ node_deb_no_rebuild }}'
+declare -r install_strategy='{{ install_strategy }}'
 
 add_user() {
   : "${1:?'User was not defined'}"
@@ -75,24 +76,43 @@ start_service () {
   fi
 }
 
-npm_install() {
+dependency_install() {
   : "${1:?'Package name was not defined'}"
   cd "/usr/share/$1/app"
 
-  if [ ! -d './node_modules' ]; then
-    echo "Directory 'node_modules' did not exist. Running 'npm install'"
-    npm install --production
-  else
-    if [ "$no_rebuild" -eq 0 ]; then
-      echo "Directory 'node_modules' exists. Running 'npm rebuild'"
-      npm rebuild --production
-    fi
-  fi
+  case $install_strategy in
+    auto)
+      if hash npm 2> /dev/null; then
+        if [ ! -d './node_modules' ]; then
+          echo "Directory 'node_modules' did not exist. Running 'npm install'"
+          npm install --production
+        else
+          if [ "$no_rebuild" -eq 0 ]; then
+            echo "Directory 'node_modules' exists. Running 'npm rebuild'"
+            npm rebuild --production
+          fi
+        fi
+      else
+        echo "WARN: 'npm' was not on the path. Dependencies may be missing."
+      fi
+      ;;
+    copy)
+      # pass
+      ;;
+    npm-install)
+      echo 'Installing dependenencies from NPM'
+      npm install --production
+      ;;
+    *)
+      echo "WARN: Unexpected install strategy: $install_strategy"
+      echo 'WARN: Dependencies may be missing.'
+      ;;
+  esac
 }
 
 add_group '{{ node_deb_group }}' ''
 add_user '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
-npm_install '{{ node_deb_package_name }}'
+dependency_install '{{ node_deb_package_name }}'
 
 mkdir -p '/var/log/{{ node_deb_package_name }}'
 chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'

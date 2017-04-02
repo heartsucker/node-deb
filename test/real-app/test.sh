@@ -19,13 +19,43 @@ npm install
                   --no-delete-temp \
                   -- app.js
 
-! find "$output/usr/share/real-app/app/node_modules/" -name 'node-deb' 2> /dev/null || \
+[ -d "$output/usr/share/real-app/app/node_modules" ] || \
+  die 'node_modules not found in Debian package'
+
+if [[ $(find "$output/usr/share/real-app/app/node_modules/" -name 'node-deb' | wc -l) -gt 0 ]]; then
   die 'node-deb found in node_modules output'
+fi
 
 dpkg -i "$output.deb"
-
 real-app &
 sleep 1
 curl --verbose localhost:8080/
+apt-get purge -y real-app
 
+../../../node-deb --verbose \
+                  --no-delete-temp \
+                  --install-strategy copy \
+                  -- app.js
+
+[ -d "$output/usr/share/real-app/app/node_modules" ] || \
+  die 'node_modules not found in Debian package'
+
+dpkg -i "$output.deb"
+real-app &
+sleep 1
+curl --verbose localhost:8080/
+apt-get purge -y real-app
+
+../../../node-deb --verbose \
+                  --no-delete-temp \
+                  --install-strategy npm-install \
+                  -- app.js
+
+[ -d "$output/usr/share/real-app/app/node_modules" ] && \
+  die 'node_modules was found in Debian package'
+
+dpkg -i "$output.deb"
+real-app &
+sleep 1
+curl --verbose localhost:8080/
 apt-get purge -y real-app
