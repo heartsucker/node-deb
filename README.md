@@ -77,6 +77,7 @@ On install, you will get.
   - That starts the app with the command `/usr/bin/node app.js arg1 arg2 arg3`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
 - A `systemd` unit file installed to `/etc/systemd/system/some-app.service`
+- A `sysv` int script installed to `/etc/init.d/some-app`
 - A Unix user `some-app`
 - A Unix group `some-app`
 
@@ -108,6 +109,7 @@ On install, you will get.
   - That starts the app with the command `node --harmony index.js`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
 - A `systemd` unit file installed to `/etc/systemd/system/some-other-app.service`
+- A `sysv` int script installed to `/etc/init.d/some-other-app`
 - A Unix user `foo`
 - A Unix group `bar`
 
@@ -149,7 +151,7 @@ You will get:
 On install, you will get.
 - An executable named `a-third-app`
   - That starts the app with the command `/usr/bin/env node app.js`
-- No `upstart` or `systemd` scripts
+- No `upstart`, `systemd`, or `sysv` scripts
 - A Unix user `tor-ro`
 - A Unix group `www-data`
 
@@ -176,7 +178,7 @@ The install strategy determines how dependencies in `node_modules` are included 
 - `copy`: This runs a blind `cp -rf` on the `node_modules` directory and includes everything in the Debian package.
   No actions are taking during package installation.
 - `npm-install`: This option does not include the `node_module` in the Debian package and runs
-  `npm install --production` as part of the `postinst` maintater script.
+  `npm install --production` as part of the `postinst` maintainer script.
 
 ## Requirements
 - `dpkg`
