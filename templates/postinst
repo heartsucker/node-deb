@@ -72,7 +72,7 @@ start_service () {
       } || echo "$service_name could not be registered or started"
     fi
   else
-    echo 'Your system does not appear to use upstart or systemd, so the service could not be started'
+    echo 'Your system does not appear to use systemd, Upstart, or System V, so the service could not be started'
   fi
 }
 
