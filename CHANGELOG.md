@@ -1,6 +1,6 @@
 # CHANGELOG
 
-#### unreleased
+#### 0.8.0 2017-04-04
 - Fixed
   - Broken `node_modules` was fixed by the addition of `--install-strategy` option
 - Added
