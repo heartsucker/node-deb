@@ -30,6 +30,9 @@ declare -ar all_tests=('simple'
                        'no-init'
                        'real-app')
 
+declare -ar simple_tests=('dog-food'
+                          'npm-install')
+
 fail() {
     printf '\n\033[31;1mTest failed!\033[0m\n\n'
 }
@@ -50,17 +53,6 @@ print_green() {
 print_divider() {
     printf "\033[34;1m--------------------------------------------\033[0m\n"
 }
-
-print_yellow 'Running generic checks (no docker)'
-print_divider
-
-print_yellow 'Running CLI checks'
-PAGER=cat ./node-deb --help           > /dev/null
-PAGER=cat ./node-deb --show-readme    > /dev/null
-PAGER=cat ./node-deb --show-changelog > /dev/null
-print_green 'CLI check success'
-
-print_divider
 
 for tst in "${all_tests[@]}"; do
   for image in "${all_images[@]}"; do
@@ -138,15 +130,17 @@ for image in "${sysv_images[@]}"; do
   print_divider
 done
 
-for image in "${all_images[@]}"; do
-  print_yellow "Running dog food test for image $image"
-  docker run --rm \
-             --volume "$cur_dir:/src" \
-             --workdir '/src' \
-             "heartsucker/node-deb-test:$image" \
-             "/src/test/dog-food.sh"
-  print_green "Success for test dog-food.sh for image $image"
-  print_divider
+for tst in "${simple_tests[@]}"; do
+  for image in "${all_images[@]}"; do
+    print_yellow "Running simple test $tst for image $image"
+    docker run --rm \
+               --volume "$cur_dir:/src" \
+               --workdir '/src' \
+               "heartsucker/node-deb-test:$image" \
+               "/src/test/$tst.sh"
+    print_green "Success for test $tst for image $image"
+    print_divider
+  done
 done
 
 # clear the trap so we don't print the fail message
