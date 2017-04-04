@@ -1,5 +1,13 @@
 # CHANGELOG
 
+#### 0.8.0 2017-04-04
+- Fixed
+  - Broken `node_modules` was fixed by the addition of `--install-strategy` option
+- Added
+  - Parsing of `node_deb.architecture` field in `package.json`
+  - `--install-strategy` to decide if a package should include dependencies or add them at
+    install time
+
 #### 0.7.0 2017-03-15
 - Fixed
   - More minor `bash` errors.

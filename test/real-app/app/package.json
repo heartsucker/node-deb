@@ -1,0 +1,19 @@
+{
+  "name": "real-app",
+  "version": "0.1.0",
+  "description": "foo",
+  "author": "foo <bar@baz.quux>",
+  "scripts": {
+    "start": "node ./app.js",
+    "test": "/bin/true"
+  },
+  "dependencies": {
+    "express": "*"
+  },
+  "devDependencies": {
+    "node-deb": "*"
+  },
+  "node_deb": {
+    "init": "none"
+  }
+}

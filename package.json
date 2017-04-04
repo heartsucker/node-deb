@@ -1,6 +1,6 @@
 {
   "name": "node-deb",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <heartsucker@autistici.org>",
   "bin": {
@@ -26,12 +26,20 @@
     "package",
     "packaging",
     "upstart",
-    "systemd"
+    "systemd",
+    "system v"
   ],
   "preferGlobal": true,
   "private": false,
   "license": "MIT",
   "homepage": "https://github.com/heartsucker/node-deb",
+  "files": [
+    "node-deb",
+    "templates",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "node_deb": {
     "init": "none",
     "templates": {

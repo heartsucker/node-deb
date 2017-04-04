@@ -28,8 +28,8 @@ You do not need to add anything to your `package.json` as it uses sane defaults.
 two options for overrides: command line options, or the JSON object `node_deb` at the top level of your `package.json`. A
 full explanation of the different options can be found by running `node-deb --help`.
 
-By default, if any of the following files exist, the will be included in the Debian package: `package.json`,
-`npm-shrinkwrap.json`, and `node_modules/`.
+By default, if any of the following files exist, the will be included in the Debian package: `package.json` and
+`npm-shrinkwrap.json`.
 
 For example, here are some sample `node_deb` overrides. The full list can be found by running
 `node-deb --list-json-overrides`.
@@ -77,6 +77,7 @@ On install, you will get.
   - That starts the app with the command `/usr/bin/node app.js arg1 arg2 arg3`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
 - A `systemd` unit file installed to `/etc/systemd/system/some-app.service`
+- A `sysv` int script installed to `/etc/init.d/some-app`
 - A Unix user `some-app`
 - A Unix group `some-app`
 
@@ -108,6 +109,7 @@ On install, you will get.
   - That starts the app with the command `node --harmony index.js`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
 - A `systemd` unit file installed to `/etc/systemd/system/some-other-app.service`
+- A `sysv` int script installed to `/etc/init.d/some-other-app`
 - A Unix user `foo`
 - A Unix group `bar`
 
@@ -149,7 +151,7 @@ You will get:
 On install, you will get.
 - An executable named `a-third-app`
   - That starts the app with the command `/usr/bin/env node app.js`
-- No `upstart` or `systemd` scripts
+- No `upstart`, `systemd`, or `sysv` scripts
 - A Unix user `tor-ro`
 - A Unix group `www-data`
 
@@ -161,6 +163,23 @@ This can have serious consequences if the user or group is shared by other appli
 
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
+### Options
+
+This section incldues addtional details about the more advanced functionality of `node-deb`
+
+#### `--install-strategy`
+
+The install strategy determines how dependencies in `node_modules` are included in the final Debian package.
+
+- `auto`: This attempts to take a minimal subset of package from the `node_modules` director using
+  `npm ls --prod`. If this is not possible, it falls back to the `copy` method. On install, if `node_modules` is
+  present, it runs `npm rebuild --prod`. If `node_modules` is not present, it runs `npm install --prod`. If `npm`
+  is not present, it issues a warning that dependencies may be missing and continues with the Debian package installation.
+- `copy`: This runs a blind `cp -rf` on the `node_modules` directory and includes everything in the Debian package.
+  No actions are taking during package installation.
+- `npm-install`: This option does not include the `node_module` in the Debian package and runs
+  `npm install --production` as part of the `postinst` maintainer script.
+
 ## Requirements
 - `dpkg`
 - `fakeroot`
@@ -168,5 +187,18 @@ More complete examples can be found by looking at `test.sh` and the correspondin
 
 These are all available through `apt` and `brew`.
 
+### Dev Requirements
+Tests are run via `docker`. This is also available through `apt` and `brew`.
+
+## Support
+
+`node-deb` only officially supports the currently supported LTS versions of Debian and Ubuntu. This includes both
+for building packages and deploying packages. At the time of this update, this translates to Debian Wheezy through
+Stretch and Ubuntu Precise through Xenial. Care has been taken to ensure this packages correctly on macOS, and macOS
+specific issues should still be reported.
+
+
 ## Contributing
 Please make all pull requests to the `develop` branch.
+
+Please make sure all pull requests pass the test suite locally.

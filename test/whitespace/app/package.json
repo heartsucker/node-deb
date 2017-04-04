@@ -1,0 +1,10 @@
+{
+  "name": "whitespace",
+  "version": "0.1.0",
+  "description": "food",
+  "author": "foo <bar@baz.quux>",
+  "scripts": {
+    "start": "/bin/true",
+    "test": "/bin/true"
+  }
+}

@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -o pipefail
+set -eo pipefail
 
 die() {
   echo 'ERROR:' "$@" >&2
@@ -62,6 +61,7 @@ log_warn() {
 }
 
 # All the variables that are injected into templates
+architecture=
 package_name=
 package_version=
 executable_name=
@@ -74,10 +74,10 @@ package_dependencies=
 node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 init=
 no_rebuild=0
+install_strategy=
 
 # Other variables
 no_delete_temp=0
-architecture='all'
 
 usage() {
   # Local var because of grep
@@ -88,7 +88,6 @@ usage() {
   echo 'Opts:'
   grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
 }
-
 
 cat_template() {
   declare -r template="$1"
@@ -131,7 +130,13 @@ while [ -n "$1" ]; do
 
 # HELPDOC: Package options:
     --arch)
-      # HELPDOC: Set the architecture of the Debian package (default 'all')
+      log_warn 'The --arch option is deprecated. Please use --architecture. This will be removed in a future released.'
+      zero_check "$value" "$param"
+      architecture="$value"
+      shift
+      ;;
+    -a | --architecture)
+      # HELPDOC: Set the architecture of the Debian package (default: 'node_deb.architecture' from package.json then 'all')
       zero_check "$value" "$param"
       architecture="$value"
       shift
@@ -163,6 +168,12 @@ while [ -n "$1" ]; do
       # HELPDOC: Init script type {auto, upstart, systemd, sysv, none}. 'auto' chooses upstart, systemd or sysv. 'none' makes no init script. (default: 'node_deb.init' from package.json then 'auto')
       zero_check "$value" "$param"
       init="$value"
+      shift
+      ;;
+    --install-strategy)
+      # HELPDOC: How to install dependendencies {auto, copy, npm-install}. See README for details. (default: 'node_deb.install_strategy' from package.json, then 'auto')
+      zero_check "$value" "$param"
+      install_strategy="$value"
       shift
       ;;
     -m | --maintainer)
@@ -231,7 +242,7 @@ while [ -n "$1" ]; do
       ;;
     --list-templates)
       # HELPDOC: Print a list of available templates then exit
-      find "$node_deb_dir/templates" -maxdepth 1 -type f -print0| xargs -0 -n 1 basename | sort
+      find "$node_deb_dir/templates" -maxdepth 1 -type f -print0 | xargs -0 -n 1 basename | sort
       exit 0
       ;;
     --list-template-variables)
@@ -252,6 +263,12 @@ while [ -n "$1" ]; do
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
       zero_check "$value" "$param"
       template_control="$value"
+      shift
+      ;;
+    --template-default-variables)
+      # HELPDOC: Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_default_variables="$value"
       shift
       ;;
     --template-executable)
@@ -284,22 +301,16 @@ while [ -n "$1" ]; do
       template_systemd="$value"
       shift
       ;;
-    --template-upstart-conf)
-      # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
-      zero_check "$value" "$param"
-      template_upstart="$value"
-      shift
-      ;;
     --template-sysv-init)
       # HELPDOC: Override System-V init script template (default: 'node_deb.templates.sysv_init' from package.json then built-in)
       zero_check "$value" "$param"
       template_sysv="$value"
       shift
       ;;
-    --template-default-variables)
-      # HELPDOC: Override default variables file template (default: 'node_deb.templates.default_variables' from package.json then built-in)
+    --template-upstart-conf)
+      # HELPDOC: Override upstart conf template (default: 'node_deb.templates.upstart_conf' from package.json then built-in)
       zero_check "$value" "$param"
-      template_default_variables="$value"
+      template_upstart="$value"
       shift
       ;;
 
@@ -319,7 +330,7 @@ while [ -n "$1" ]; do
           'to ensure future compatibility.'
       ;;
     --show-changelog)
-      # HELPDOC: Display the changelog then exit
+      # HELPDOC: Display the CHANGELOG then exit
       show_file "$node_deb_dir/CHANGELOG.md"
       exit 0
       ;;
@@ -417,6 +428,15 @@ if [ -z "$package_dependencies" ]; then
 fi
 log_debug "The package dependencies has been set to: $package_dependencies"
 
+# Set the package architecture
+if [ -z "$architecture" ]; then
+  architecture=$(jq -r '.node_deb.architecture' package.json)
+  if [[ "$architecture" == 'null' ]]; then
+    architecture="all"
+  fi
+fi
+: ${architecture:='all'}
+log_debug "The package architecture has been set to: $architecture"
 
 # Set executable name
 if [ -z "$executable_name" ]; then
@@ -471,6 +491,21 @@ case $init in
     die "Invalid init type: $init. Must be 'auto', 'upstart', 'systemd', 'sysv', or 'none'"
 esac
 log_debug "The init type has been set to: $init"
+
+# Set install strategy
+if [ -z "$install_strategy" ]; then
+  install_strategy=$(jq -r '.node_deb.install_strategy' package.json)
+  if [[ "$install_strategy" == 'null' ]]; then
+    install_strategy='auto'
+  fi
+fi
+case $install_strategy in
+  auto|copy|npm-install)
+    ;;
+  *)
+    die "Invalid install strategy. Must be 'auto', 'copy', or 'npm-install'"
+esac
+log_debug "The install strategy has been set to: $install_strategy"
 
 # Check for extra files
 if [ -z "$extra_files" ]; then
@@ -590,7 +625,6 @@ mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
          "$deb_dir/etc/default" \
          "$deb_dir/usr/share/$package_name/app" \
-         "$deb_dir/usr/share/$package_name/app/node_modules" \
          "$deb_dir/usr/share/$package_name/bin" \
          "$deb_dir/usr/bin"
 
@@ -655,6 +689,7 @@ replace_vars() {
     -e "s/{{ node_deb_init }}/$(escape "$init")/g" \
     -e "s/{{ node_deb_no_rebuild }}/$(escape "$no_rebuild")/g" \
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
+    -e "s/{{ install_strategy }}/$(escape "$install_strategy")/g" \
   > "$target_file"
   ### END TEMPLATE_VARS ###
   chmod "$permissions" "$target_file"
@@ -690,21 +725,22 @@ ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$execut
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
 if echo "$@" | grep -q 'node_modules'; then
-  log_warn "Since node-deb v0.6.0, 'node_modules' is automatically included and should not be specified on the" \
-    "command line. Only production files are included via 'npm ls --prod'. Inclusion of 'node_modules' will" \
+  log_warn "Since node-deb v0.8.0, 'node_modules' cannot be included on the command line. Use the option" \
+    "'--install-strategy' to pick if/how it is included. Inclusion of 'node_modules' will" \
     'result in an error in future releases.'
 fi
 
 if echo "$@" | grep -q 'package.json'; then
   log_warn "Since node-deb v0.6.0, 'package.json' is automatically included and should not be specified on the" \
-      'command line.'
+    'command line.'
 fi
 
 if echo "$@" | grep -q 'npm-shrinkwrap.json'; then
   log_warn "Since node-deb v0.6.0, 'npm-shrinkwrap.json' is automatically included and should not be specified on the" \
-      'command line.'
+    'command line.'
 fi
 
+# copy the main files
 find "$@" -type d -print0 | {
   while IFS= read -r -d '' dir; do
     if ! readlink_f "$dir" | grep -Eq "^$source_dir/node_modules/.*"; then
@@ -722,13 +758,39 @@ find "$@" -type f -print0 | {
   done
 }
 
-if [ -d "$source_dir/node_modules" ]; then
-  npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:/node_modules/::g' | {
-    while IFS="\n" read -r -d '' dir; do
-      log_debug "Copying dir: $dir"
-      cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
-    done
-  }
+copy_node_modules() {
+  if [ -d "$source_dir/node_modules" ]; then
+    log_debug 'Copying dir: node_modules'
+    cp -rf "$source_dir/node_modules/" "$deb_dir/usr/share/$package_name/app/"
+  fi
+}
+
+if [[ "$install_strategy" == 'auto' ]]; then
+  if [ -d "$source_dir/node_modules" ]; then
+    if hash npm 2> /dev/null; then
+      mkdir -p "$deb_dir/usr/share/$package_name/app/node_modules"
+
+      # this is a bash-y mess, but basically the last sed-cut-sort strips out nested node_modules in dependencies
+      for dir in $(npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:^/node_modules/::g' | cut -d / -f 1 | sort -u); do
+        log_debug "Copying dependency: $dir"
+        cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
+      done
+
+      if [ -f "$source_dir/node_modules/.bin" ]; then
+        cp -rf "$source_dir/node_modules/.bin/" "$deb_dir/usr/share/$package_name/app/node_modules/.bin/"
+        # only keep the links that still point to something
+        for e in $(find "$deb_dir/usr/share/$package_name/app/node_modeules/.bin/"); do
+          stat "$(readlink_f "$e")" || rm -rf "$e"
+        done
+      fi
+    else
+      copy_node_modules
+    fi
+  fi
+fi
+
+if [[ "$install_strategy" == 'copy' ]]; then
+  copy_node_modules
 fi
 
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then

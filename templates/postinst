@@ -5,6 +5,7 @@ set -o pipefail
 
 declare -r init_type='{{ node_deb_init }}'
 declare -ri no_rebuild='{{ node_deb_no_rebuild }}'
+declare -r install_strategy='{{ install_strategy }}'
 
 add_user() {
   : "${1:?'User was not defined'}"
@@ -53,52 +54,69 @@ start_service () {
       {
         systemctl enable "$service_name.service" && \
         systemctl start "$service_name.service"
-      } || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
+      } || echo "$service_name could not be registered or started"
     fi
   elif hash service 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' || "$init_type" == 'sysv' ]]; then
-      service "$service_name" start || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
+      service "$service_name" start || echo "$service_name could not be registered or started"
     fi
   elif hash start 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'upstart' ]]; then
-      start "$service_name" || echo "$service_name could not be registered or started" # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
+      start "$service_name" || echo "$service_name could not be registered or started"
     fi
   elif hash update-rc.d 2> /dev/null; then
     if [[ "$init_type" == 'auto' || "$init_type" == 'sysv' ]]; then
       {
         update-rc.d "$service_name" defaults && \
         "/etc/init.d/$service_name" start
-      } || echo "$service_name could not be registered or started"  # using `|| echo` to ensure script exits with 0. Failure to start is not failure to install
+      } || echo "$service_name could not be registered or started"
     fi
   else
-    # using `echo` to ensure script exits with 0. Failure to start is not failure to install
-    echo 'Your system does not appear to use upstart or systemd, so the service could not be started'
+    echo 'Your system does not appear to use systemd, Upstart, or System V, so the service could not be started'
   fi
 }
 
-npm_install() {
+dependency_install() {
   : "${1:?'Package name was not defined'}"
   cd "/usr/share/$1/app"
 
-  if [ ! -d './node_modules' ]; then
-    echo "Directory 'node_modules' did not exist. Running 'npm install'"
-    npm install --production
-  else
-    if [ "$no_rebuild" -eq 0 ]; then
-      echo "Directory 'node_modules' exists. Running 'npm rebuild'"
-      npm rebuild --production
-    fi
-  fi
+  case $install_strategy in
+    auto)
+      if hash npm 2> /dev/null; then
+        if [ ! -d './node_modules' ]; then
+          echo "Directory 'node_modules' did not exist. Running 'npm install'"
+          npm install --production
+        else
+          if [ "$no_rebuild" -eq 0 ]; then
+            echo "Directory 'node_modules' exists. Running 'npm rebuild'"
+            npm rebuild --production
+          fi
+        fi
+      else
+        echo "WARN: 'npm' was not on the path. Dependencies may be missing."
+      fi
+      ;;
+    copy)
+      # pass
+      ;;
+    npm-install)
+      echo 'Installing dependenencies from NPM'
+      npm install --production
+      ;;
+    *)
+      echo "WARN: Unexpected install strategy: $install_strategy"
+      echo 'WARN: Dependencies may be missing.'
+      ;;
+  esac
 }
 
 add_group '{{ node_deb_group }}' ''
 add_user '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
-npm_install '{{ node_deb_package_name }}'
+dependency_install '{{ node_deb_package_name }}'
 
 mkdir -p '/var/log/{{ node_deb_package_name }}'
-
 chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
 
-if [[ "$init_type" == 'auto' ]] || [[ "$init_type" == 'systemd' ]] || [[ "$init_type" == 'upstart' ]] || [[ "$init_type" == 'sysv' ]]; then
+if [[ "$init_type" != 'none' ]]; then
   start_service '{{ node_deb_package_name }}'
 fi
