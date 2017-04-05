@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "foo",
   "author": "foo <bar@baz.quux>",
+  "private": true,
   "scripts": {
     "test": "/bin/true"
   },
