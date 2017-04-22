@@ -1,0 +1,14 @@
+{
+  "name": "real-cli",
+  "version": "0.1.0",
+  "description": "foo",
+  "author": "foo <bar@baz.quux>",
+  "private": true,
+  "scripts": {
+    "start": "./cli.sh",
+    "test": "/bin/true"
+  },
+  "node_deb": {
+    "init": "none"
+  }
+}
