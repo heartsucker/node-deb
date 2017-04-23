@@ -2,11 +2,14 @@
   "name": "extra-files",
   "version": "0.1.0",
   "description": "foo",
+  "private": true,
   "author": "foo <bar@baz.quux>",
   "scripts": {
     "test": "/bin/true"
   },
   "node_deb": {
-    "start_command": "/bin/true"
+    "entrypoints": {
+      "daemon": "foo.sh"
+    }
   }
 }

@@ -1,17 +1,21 @@
 {
-  "name": "systemd-app",
+  "name": "real-cli",
   "version": "0.1.0",
   "description": "foo",
   "author": "foo <bar@baz.quux>",
   "private": true,
   "scripts": {
-    "start": "./app.sh",
+    "start": "./cli.sh",
     "test": "/bin/true"
   },
+  "dependencies": {
+    "left-pad": "*"
+  },
   "node_deb": {
-    "init": "systemd",
+    "init": "none",
     "entrypoints": {
-      "daemon": "app.sh"
+      "daemon": "cli.js",
+      "cli": "cli.js"
     }
   }
 }

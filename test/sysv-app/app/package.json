@@ -3,11 +3,15 @@
   "version": "0.1.0",
   "description": "foo",
   "author": "foo <bar@baz.quux>",
+  "private": true,
   "scripts": {
     "start": "./app.sh",
     "test": "/bin/true"
   },
   "node_deb": {
-    "init": "sysv"
+    "init": "sysv",
+    "entrypoints": {
+      "daemon": "app.sh"
+    }
   }
 }

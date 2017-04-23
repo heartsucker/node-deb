@@ -3,8 +3,14 @@
   "version": "0.1.0",
   "description": "food",
   "author": "foo <bar@baz.quux>",
+  "private": true,
   "scripts": {
     "start": "/bin/true",
     "test": "/bin/true"
+  },
+  "node_deb": {
+    "entrypoints": {
+      "daemon": "whitespace file.js"
+    }
   }
 }

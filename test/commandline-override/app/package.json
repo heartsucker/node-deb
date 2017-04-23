@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "foo",
   "author": "foo <bar@baz.quux>",
+  "private": true,
   "scripts": {
-    "start": "/bin/true",
     "test": "/bin/true"
   },
   "node_deb": {
@@ -13,6 +13,9 @@
     "user": "bad-user",
     "group": "bad-group",
     "description": "bad description",
-    "maintainer": "bad maintainer"
+    "maintainer": "bad maintainer",
+    "entrypoints": {
+      "daemon": "app.js"
+    }
   }
 }
