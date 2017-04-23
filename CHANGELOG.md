@@ -1,9 +1,18 @@
 # CHANGELOG
 
+<<<<<<< Updated upstream
 #### unreleased
 - **BREAKING**
   - Apps are now started with either `.node_deb.entrypoints.cli` or `.node_deb.entrypoints.daemon` and not
     `.start` or `.node_deb.start_command` in `package.json`. See `README.md` for more details.
+=======
+#### 0.9.0 2017-04-23
+- **BREAKING**
+  - Apps are now started with either `.node_deb.entrypoints.cli` or `.node_deb.entrypoints.daemon` and not
+    `.start` or `.node_deb.start_command` in `package.json`. See `README.md` for more details.
+- Fixed
+  - CLI apps don't `cd` to the install root before executing
+>>>>>>> Stashed changes
 
 #### 0.8.0 2017-04-04
 - Fixed

@@ -1,6 +1,10 @@
 {
   "name": "node-deb",
+<<<<<<< Updated upstream
   "version": "0.8.1",
+=======
+  "version": "0.9.0",
+>>>>>>> Stashed changes
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <heartsucker@autistici.org>",
   "bin": {
