@@ -26,7 +26,6 @@ declare -ar all_tests=('simple'
                        'node-deb-override'
                        'commandline-override'
                        'extra-files'
-                       'redirect'
                        'no-init'
                        'real-app'
                        'real-cli')

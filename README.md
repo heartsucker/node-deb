@@ -24,9 +24,10 @@ necessary to install, uninstall, start, and stop your application. On installati
 dedicated Unix users and groups will be created and your distribution's default init system will start and monitor
 the process.
 
-You do not need to add anything to your `package.json` as it uses sane defaults. However, if you don't like these, there are
-two options for overrides: command line options, or the JSON object `node_deb` at the top level of your `package.json`. A
-full explanation of the different options can be found by running `node-deb --help`.
+`node-deb` uses sane defaults, so the only thing you need to add to your `package.json` is the app/cli entrypoint.
+However, if you don't like these, there are two options for overrides: command line options, or the JSON object
+`node_deb` at the top level of your `package.json`. A full explanation of the different options can be found by
+running `node-deb --help`.
 
 By default, if any of the following files exist, the will be included in the Debian package: `package.json` and
 `npm-shrinkwrap.json`.
@@ -41,7 +42,9 @@ For example, here are some sample `node_deb` overrides. The full list can be fou
   "node_deb": {
     "init": "systemd",
     "version": "1.2.3-beta",
-    "start_command": "/usr/bin/node foo.js"
+    "entrypoints": {
+      "daemon": "foo.js --config /etc/some-app/config.js"
+    }
   }
 }
 ```
@@ -57,8 +60,10 @@ always override the values found in the rest of `package.json`.
 {
   "name": "some-app",
   "version": "1.2.3",
-  "scripts": {
-    "start": "/usr/bin/node app.js arg1 arg2 arg3"
+  "node_deb": {
+    "entrypoints": {
+      "daemon": "app.js arg1 arg2"
+    }
   }
 }
 ```
@@ -74,7 +79,7 @@ You will get:
 
 On install, you will get.
 - An executable named `some-app`
-  - That starts the app with the command `/usr/bin/node app.js arg1 arg2 arg3`
+  - That starts the app with the command `app.js arg1 arg2 arg3`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
 - A `systemd` unit file installed to `/etc/systemd/system/some-app.service`
 - A `sysv` int script installed to `/etc/init.d/some-app`
@@ -88,8 +93,10 @@ On install, you will get.
 {
   "name": "some-other-app",
   "version": "5.0.2",
-  "scripts": {
-    "start": "node --harmony index.js"
+  "node_deb": {
+    "entrypoints": {
+      "daemon": "index.js --daemon"
+    }
   }
 }
 ```
@@ -106,7 +113,7 @@ You will get:
 
 On install, you will get.
 - An executable named `some-other-app`
-  - That starts the app with the command `node --harmony index.js`
+  - That starts the app with the command `index.js --daemon`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
 - A `systemd` unit file installed to `/etc/systemd/system/some-other-app.service`
 - A `sysv` int script installed to `/etc/init.d/some-other-app`
@@ -120,10 +127,6 @@ On install, you will get.
 {
   "name": "a-third-app",
   "version": "0.10.1",
-  "scripts": {
-    "start": "/usr/bin/env node app.js"
-  }
-  ...
   "node_deb": {
     "init": "none",
     "dependencies": "apparmor, tor",
@@ -131,6 +134,9 @@ On install, you will get.
     "group": "www-data",
     "templates": {
       "postinst": "my-teplates/my-postinst-template.txt"
+    },
+    "entrypoints": {
+      "cli": "app.js"
     }
   }
 }
@@ -150,7 +156,7 @@ You will get:
 
 On install, you will get.
 - An executable named `a-third-app`
-  - That starts the app with the command `/usr/bin/env node app.js`
+  - That starts the app with the command `app.js`
 - No `upstart`, `systemd`, or `sysv` scripts
 - A Unix user `tor-ro`
 - A Unix group `www-data`

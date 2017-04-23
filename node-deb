@@ -63,10 +63,10 @@ log_warn() {
 # All the variables that are injected into templates
 architecture=
 cli_entrypoint=
+daemon_entrypoint=
 package_name=
 package_version=
 executable_name=
-start_command=
 user=
 group=
 package_description=
@@ -143,12 +143,6 @@ while [ -n "$1" ]; do
       architecture="$value"
       shift
       ;;
-    --cli-entry_point)
-        # HELPDOC: The shell-friendly command that starts the CLI
-        zero_check "$value" "$param"
-        cli_entrypoint="$param"
-        shift
-        ;;
     -d | --description)
       # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
       zero_check "$value" "$param"
@@ -210,11 +204,6 @@ while [ -n "$1" ]; do
       # HELPDOC: The dependencies for the Debian package (default: 'node_deb.dependencies')
       zero_check "$value" "$param"
       package_dependencies="$value"
-      shift
-      ;;
-    --start-command)
-      # HELPDOC: The start command to use (default: 'node_deb.start_command' then 'scripts.start' from package.json)
-      start_command="$value"
       shift
       ;;
     -u | --user)
@@ -446,15 +435,6 @@ fi
 : ${architecture:='all'}
 log_debug "The package architecture has been set to: $architecture"
 
-# Set the CLI entrypoint
-if [ -z "$cli_entrypoint" ]; then
-  cli_entrypoint=$(jq -r '.node_deb.entrypoints.cli' package.json)
-  if [[ "$cli_entrypoint" == 'null' ]]; then
-    die 'CLI entrypoint must be set!'
-  fi
-fi
-log_debug "The CLI entrypoint has been set to: $cli_entrypoint"
-
 # Set executable name
 if [ -z "$executable_name" ]; then
   executable_name=$(jq -r '.node_deb.executable_name' package.json)
@@ -463,18 +443,6 @@ if [ -z "$executable_name" ]; then
   fi
 fi
 log_debug "The executable name has been set to: $executable_name"
-
-# Set start command
-if [ -z "$start_command" ]; then
-  start_command=$(jq -r '.node_deb.start_command' package.json)
-  if [ "$start_command" == 'null' ]; then
-    start_command=$(jq -r '.scripts.start' package.json)
-    if [ "$start_command" == 'null' ]; then
-      die 'Your package.json must have element "node_deb.start_command" or "scripts.start"'
-    fi
-  fi
-fi
-log_debug "The start command has been set to: $start_command"
 
 # Set unix user
 if [ -z "$user" ]; then
@@ -623,6 +591,25 @@ fi
 : ${template_default_variables:="$node_deb_dir/templates/default"}
 log_debug "The default variables file template has been set to: $template_default_variables"
 
+# Set the daemon entrypoint
+if [ -z "$daemon_entrypoint" ]; then
+  daemon_entrypoint=$(jq -r '.node_deb.entrypoints.daemon' package.json)
+  if [[ "$daemon_entrypoint" == 'null' ]] && [[ "$init" != 'none' ]]; then
+    die 'Daemon entrypoint must be set in .node_deb.entrypoints.daemon in package.json'
+  fi
+fi
+log_debug "The daemon entrypoint has been set to: $daemon_entrypoint"
+
+# Set the CLI entrypoint
+if [ -z "$cli_entrypoint" ]; then
+  cli_entrypoint=$(jq -r '.node_deb.entrypoints.cli' package.json)
+  if [[ "$cli_entrypoint" == 'null' ]]; then
+    cli_entrypoint="$daemon_entrypoint"
+  fi
+fi
+log_debug "The CLI entrypoint has been set to: $cli_entrypoint"
+
+
 deb_dir="${package_name}_${package_version}_${architecture}"
 
 finish() {
@@ -696,8 +683,8 @@ replace_vars() {
     -e "s/{{ node_deb_package_name }}/$(escape "$package_name")/g" \
     -e "s/{{ node_deb_executable_name }}/$(escape "$executable_name")/g" \
     -e "s/{{ node_deb_package_version }}/$(escape "$package_version")/g" \
-    -e "s/{{ node_deb_start_command }}/$(escape "$start_command")/g" \
     -e "s/{{ cli_entrypoint }}/$(escape "$cli_entrypoint")/g" \
+    -e "s/{{ daemon_entrypoint }}/$(escape "$daemon_entrypoint")/g" \
     -e "s/{{ node_deb_package_description }}/$(escape "$package_description")/g" \
     -e "s/{{ node_deb_package_maintainer }}/$(escape "$package_maintainer")/g" \
     -e "s/{{ node_deb_package_dependencies }}/$(escape "$package_dependencies")/g" \

@@ -41,6 +41,9 @@
   ],
   "node_deb": {
     "init": "none",
+    "entrypoints": {
+      "cli": "node-deb"
+    },
     "templates": {
       "executable": "template-overrides/executable",
       "control": "template-overrides/control"

@@ -13,7 +13,7 @@
 
 set -u
 
-SCRIPT="/usr/share/{{ node_deb_package_name }}/bin/{{ node_deb_executable_name }}"
+SCRIPT="/usr/share/{{ node_deb_package_name }}/app/{{ daemon_entrypoint }}"
 USER="{{ node_deb_user }}"
 NAME="{{ node_deb_package_name }}"
 WORKING_DIRECTORY="/usr/share/{{ node_deb_package_name }}"

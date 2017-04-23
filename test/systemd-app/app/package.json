@@ -9,6 +9,9 @@
     "test": "/bin/true"
   },
   "node_deb": {
-    "init": "systemd"
+    "init": "systemd",
+    "entrypoints": {
+      "daemon": "app.sh"
+    }
   }
 }

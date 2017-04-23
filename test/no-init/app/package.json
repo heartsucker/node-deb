@@ -8,7 +8,9 @@
     "test": "/bin/true"
   },
   "node_deb": {
-    "start_command": "./app.sh",
-    "init": "none"
+    "init": "none",
+    "entrypoints": {
+      "cli": "app.sh"
+    }
   }
 }
