@@ -5,7 +5,6 @@
   "author": "foo <bar@baz.quux>",
   "private": true,
   "scripts": {
-    "start": "node ./app.js",
     "test": "/bin/true"
   },
   "dependencies": {
@@ -15,6 +14,9 @@
     "node-deb": "*"
   },
   "node_deb": {
-    "init": "none"
+    "init": "none",
+    "entrypoints": {
+      "daemon": "app.js"
+    }
   }
 }

@@ -26,18 +26,12 @@ declare -ar all_tests=('simple'
                        'node-deb-override'
                        'commandline-override'
                        'extra-files'
-                       'redirect'
                        'no-init'
-                       'real-app')
+                       'real-app'
+                       'real-cli')
 
 declare -ar simple_tests=('dog-food'
                           'npm-install')
-
-fail() {
-    printf '\n\033[31;1mTest failed!\033[0m\n\n'
-}
-
-trap 'fail' EXIT
 
 cur_dir="$(dirname $(readlink -f $0))"
 declare -r cur_dir
@@ -54,8 +48,59 @@ print_divider() {
     printf "\033[34;1m--------------------------------------------\033[0m\n"
 }
 
+usage() {
+  # Local var because of grep
+  declare helpdoc='HELP'
+  helpdoc+='DOC'
+
+  echo 'Usage: test.sh [opts]'
+  echo 'Opts:'
+  grep "$helpdoc" "$0" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
+}
+
+while [ -n "$1" ]; do
+  param="$1"
+  value="$2"
+
+  case $param in
+    --distribution | -d)
+      # HELPDOC: The distro to test. Blank == all.
+      distro="$value"
+      shift
+      ;;
+    --help | -h)
+      # HELPDOC: Print this message then exit.
+      usage
+      exit 0
+      ;;
+    --test | -t)
+      # HELPDOC: The test to run. Blank == all.
+      test_name="$value"
+      shift
+      ;;
+    *)
+      echo "Unnown argument: $param"
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+
+fail() {
+    printf '\n\033[31;1mTest failed!\033[0m\n\n'
+}
+
+trap 'fail' EXIT
+
+
 for tst in "${all_tests[@]}"; do
+  if [[ "$tst" != "${test_name:-$tst}" ]]; then continue; fi
+
   for image in "${all_images[@]}"; do
+    if [[ "$image" != "${distro:-$image}" ]]; then continue; fi
+
     print_yellow "Running test $tst for image $image"
     docker run --rm \
                --volume "$cur_dir:/src" \
@@ -68,6 +113,9 @@ for tst in "${all_tests[@]}"; do
 done
 
 for image in "${systemd_images[@]}"; do
+  if [[ 'systemd' != "${test_name:-systemd}" ]]; then continue; fi
+  if [[ "$image" != "${distro:-$image}" ]]; then continue; fi
+
   print_yellow "Running systemd test for image $image"
   name="$image-node-deb"
 
@@ -93,6 +141,9 @@ for image in "${systemd_images[@]}"; do
 done
 
 for image in "${upstart_images[@]}"; do
+  if [[ 'upstart' != "${test_name:-'upstart'}" ]]; then continue; fi
+  if [[ "$image" != "${distro:-$image}" ]]; then continue; fi
+
   print_yellow "Running upstart test for image $image"
   name="$image-node-deb"
 
@@ -116,6 +167,9 @@ for image in "${upstart_images[@]}"; do
 done
 
 for image in "${sysv_images[@]}"; do
+  if [[ 'sysv' != "${test_name:-sysv}" ]]; then continue; fi
+  if [[ "$image" != "${distro:-$image}" ]]; then continue; fi
+
   print_yellow "Running sysv test for image $image"
   name="$image-node-deb"
 
@@ -131,7 +185,11 @@ for image in "${sysv_images[@]}"; do
 done
 
 for tst in "${simple_tests[@]}"; do
+  if [[ "$tst" != "${test_name:-$tst}" ]]; then continue; fi
+
   for image in "${all_images[@]}"; do
+    if [[ "$image" != "${distro:-$image}" ]]; then continue; fi
+
     print_yellow "Running simple test $tst for image $image"
     docker run --rm \
                --volume "$cur_dir:/src" \

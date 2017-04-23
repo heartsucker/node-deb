@@ -5,7 +5,6 @@
   "author": "foo <bar@baz.quux>",
   "private": true,
   "scripts": {
-    "start": "/bin/true",
     "test": "/bin/true"
   },
   "node_deb": {
@@ -23,6 +22,9 @@
       "prerm": "templates/prerm",
       "systemd_service": "templates/systemd.service",
       "upstart_conf": "templates/upstart.conf"
+    },
+    "entrypoints": {
+      "daemon": "app.js"
     }
   }
 }

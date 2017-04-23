@@ -9,6 +9,9 @@
     "test": "/bin/true"
   },
   "node_deb": {
-    "init": "sysv"
+    "init": "sysv",
+    "entrypoints": {
+      "daemon": "app.sh"
+    }
   }
 }

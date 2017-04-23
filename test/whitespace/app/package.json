@@ -7,5 +7,10 @@
   "scripts": {
     "start": "/bin/true",
     "test": "/bin/true"
+  },
+  "node_deb": {
+    "entrypoints": {
+      "daemon": "whitespace file.js"
+    }
   }
 }

@@ -8,6 +8,8 @@
     "test": "/bin/true"
   },
   "node_deb": {
-    "start_command": "/bin/true"
+    "entrypoints": {
+      "daemon": "foo.sh"
+    }
   }
 }

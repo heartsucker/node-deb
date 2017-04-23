@@ -7,7 +7,6 @@
     "node-deb": "./node-deb"
   },
   "scripts": {
-    "start": "./node-deb",
     "test": "./test.sh --clean-first",
     "node-deb": "./node-deb -- node-deb templates/ README.md CHANGELOG.md LICENSE"
   },
@@ -42,6 +41,9 @@
   ],
   "node_deb": {
     "init": "none",
+    "entrypoints": {
+      "cli": "node-deb"
+    },
     "templates": {
       "executable": "template-overrides/executable",
       "control": "template-overrides/control"
