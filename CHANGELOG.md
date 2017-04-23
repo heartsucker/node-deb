@@ -1,5 +1,12 @@
 # CHANGELOG
 
+#### unreleased
+- **BREAKING**
+  - Apps are now started with either `.node_deb.entrypoints.cli` or `.node_deb.entrypoints.daemon` and not
+    `.start` or `.node_deb.start_command` in `package.json`. See `README.md` for more details.
+  - TODO ensure daemon entry point is changed
+  - TODO ensure README is up to date
+
 #### 0.8.0 2017-04-04
 - Fixed
   - Broken `node_modules` was fixed by the addition of `--install-strategy` option

@@ -114,6 +114,7 @@ for tst in "${all_tests[@]}"; do
 done
 
 for image in "${systemd_images[@]}"; do
+  if [[ 'systemd' != "${test_name:-systemd}" ]]; then continue; fi
   if [[ "$image" != "${distro:-$image}" ]]; then continue; fi
 
   print_yellow "Running systemd test for image $image"

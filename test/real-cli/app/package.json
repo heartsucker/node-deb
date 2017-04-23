@@ -8,7 +8,13 @@
     "start": "./cli.sh",
     "test": "/bin/true"
   },
+  "dependencies": {
+    "left-pad": "*"
+  },
   "node_deb": {
-    "init": "none"
+    "init": "none",
+    "entrypoints": {
+      "cli": "cli.js"
+    }
   }
 }

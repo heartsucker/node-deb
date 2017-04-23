@@ -62,6 +62,7 @@ log_warn() {
 
 # All the variables that are injected into templates
 architecture=
+cli_entrypoint=
 package_name=
 package_version=
 executable_name=
@@ -130,6 +131,7 @@ while [ -n "$1" ]; do
 
 # HELPDOC: Package options:
     --arch)
+      # TODO remove me
       log_warn 'The --arch option is deprecated. Please use --architecture. This will be removed in a future released.'
       zero_check "$value" "$param"
       architecture="$value"
@@ -141,6 +143,12 @@ while [ -n "$1" ]; do
       architecture="$value"
       shift
       ;;
+    --cli-entry_point)
+        # HELPDOC: The shell-friendly command that starts the CLI
+        zero_check "$value" "$param"
+        cli_entrypoint="$param"
+        shift
+        ;;
     -d | --description)
       # HELPDOC:  The description of the Debian package (default: 'node_deb.description' then 'description' from package.json)
       zero_check "$value" "$param"
@@ -408,7 +416,7 @@ if [ -z "$package_description" ]; then
 fi
 log_debug "The package description has been set and starts with: $(echo "$package_description" | head -1 | cut -c-40)"
 
-# Set the packge maintainer
+# Set the package maintainer
 if [ -z "$package_maintainer" ]; then
   package_maintainer=$(jq -r '.node_deb.maintainer' package.json)
   if [[ "$package_maintainer" == 'null' ]]; then
@@ -417,7 +425,7 @@ if [ -z "$package_maintainer" ]; then
 fi
 log_debug "The package maintainer has been set to: $package_maintainer"
 
-# Set the packge dependencies
+# Set the package dependencies
 if [ -z "$package_dependencies" ]; then
   package_dependencies=$(jq -r '.node_deb.dependencies' package.json)
   if [[ "$package_dependencies" == 'null' ]]; then
@@ -437,6 +445,15 @@ if [ -z "$architecture" ]; then
 fi
 : ${architecture:='all'}
 log_debug "The package architecture has been set to: $architecture"
+
+# Set the CLI entrypoint
+if [ -z "$cli_entrypoint" ]; then
+  cli_entrypoint=$(jq -r '.node_deb.entrypoints.cli' package.json)
+  if [[ "$cli_entrypoint" == 'null' ]]; then
+    die 'CLI entrypoint must be set!'
+  fi
+fi
+log_debug "The CLI entrypoint has been set to: $cli_entrypoint"
 
 # Set executable name
 if [ -z "$executable_name" ]; then
@@ -680,6 +697,7 @@ replace_vars() {
     -e "s/{{ node_deb_executable_name }}/$(escape "$executable_name")/g" \
     -e "s/{{ node_deb_package_version }}/$(escape "$package_version")/g" \
     -e "s/{{ node_deb_start_command }}/$(escape "$start_command")/g" \
+    -e "s/{{ cli_entrypoint }}/$(escape "$cli_entrypoint")/g" \
     -e "s/{{ node_deb_package_description }}/$(escape "$package_description")/g" \
     -e "s/{{ node_deb_package_maintainer }}/$(escape "$package_maintainer")/g" \
     -e "s/{{ node_deb_package_dependencies }}/$(escape "$package_dependencies")/g" \

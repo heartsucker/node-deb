@@ -16,7 +16,6 @@ trap 'finish' EXIT
 npm install
 
 ../../../node-deb --verbose \
-                  --no-delete-temp \
                   -- cli.js
 
 dpkg -i "$output.deb"
