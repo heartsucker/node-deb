@@ -117,6 +117,9 @@ dependency_install '{{ node_deb_package_name }}'
 mkdir -p '/var/log/{{ node_deb_package_name }}'
 chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
 
+mkdir -p '/var/opt/{{ node_deb_package_name }}'
+chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/opt/{{ node_deb_package_name }}'
+
 if [[ "$init_type" != 'none' ]]; then
   start_service '{{ node_deb_package_name }}'
 fi
