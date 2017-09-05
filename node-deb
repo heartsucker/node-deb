@@ -766,7 +766,7 @@ find "$@" -type f -print0 | {
 copy_node_modules() {
   if [ -d "$source_dir/node_modules" ]; then
     log_debug 'Copying dir: node_modules'
-    cp -rf "$source_dir/node_modules/" "$deb_dir/usr/share/$package_name/app/"
+    cp -rfL "$source_dir/node_modules/" "$deb_dir/usr/share/$package_name/app/"
   fi
 }
 
@@ -782,7 +782,7 @@ if [[ "$install_strategy" == 'auto' ]]; then
       done
 
       if [ -f "$source_dir/node_modules/.bin" ]; then
-        cp -rf "$source_dir/node_modules/.bin/" "$deb_dir/usr/share/$package_name/app/node_modules/.bin/"
+        cp -rfL "$source_dir/node_modules/.bin/" "$deb_dir/usr/share/$package_name/app/node_modules/.bin/"
         # only keep the links that still point to something
         for e in $(find "$deb_dir/usr/share/$package_name/app/node_modeules/.bin/"); do
           stat "$(readlink_f "$e")" || rm -rf "$e"
