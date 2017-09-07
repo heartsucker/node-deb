@@ -29,7 +29,7 @@ However, if you don't like these, there are two options for overrides: command l
 `node_deb` at the top level of your `package.json`. A full explanation of the different options can be found by
 running `node-deb --help`.
 
-By default, if any of the following files exist, the will be included in the Debian package: `package.json` and
+By default, if any of the following files exist, they will be included in the Debian package: `package.json` and
 `npm-shrinkwrap.json`.
 
 For example, here are some sample `node_deb` overrides. The full list can be found by running
@@ -189,7 +189,7 @@ The install strategy determines how dependencies in `node_modules` are included 
 ## Requirements
 - `dpkg`
 - `fakeroot`
-- `jq`
+- [`jq`](https://stedolan.github.io/jq/)
 
 These are all available through `apt` and `brew`.
 
