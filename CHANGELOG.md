@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.9.1 2017-09-07
+- Fixed
+  - When using the intall strategy `copy` or `auto`, symlinks in `node_modules` are dereferenced
+
 #### 0.9.0 2017-04-23
 - **BREAKING**
   - Apps are now started with either `.node_deb.entrypoints.cli` or `.node_deb.entrypoints.daemon` and not
