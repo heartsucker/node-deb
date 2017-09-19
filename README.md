@@ -29,8 +29,8 @@ However, if you don't like these, there are two options for overrides: command l
 `node_deb` at the top level of your `package.json`. A full explanation of the different options can be found by
 running `node-deb --help`.
 
-By default, if any of the following files exist, they will be included in the Debian package: `package.json` and
-`npm-shrinkwrap.json`.
+By default, if any of the following files exist, they will be included in the Debian package: `package.json`,
+`npm-shrinkwrap.json` and `package-lock.json`.
 
 For example, here are some sample `node_deb` overrides. The full list can be found by running
 `node-deb --list-json-overrides`.
@@ -105,7 +105,7 @@ On install, you will get.
 
 You will get:
 - A Debian package named `some-other-app_20150826_all.deb`
-  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json` and the directories `lib` &
+  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json|package-lock.json` and the directories `lib` &
     `node_modules`
   - Installed via
     - `apt-get install some-other-app`
@@ -121,7 +121,7 @@ On install, you will get.
 - A Unix group `bar`
 
 #### Ex. 3
-`package.son`:
+`package.json`:
 
 ```json
 {
@@ -146,7 +146,7 @@ On install, you will get.
 
 You will get:
 - A Debian package named `a-third-app_0.10.1_all.deb`
-  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json` and the directories `lib` &
+  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json|package-lock.json` and the directories `lib` &
     `node_modules`
   - With additional dependencies on `apparmor` and `tor`
   - Installed via

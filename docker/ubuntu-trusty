@@ -1,7 +1,7 @@
 FROM ubuntu-upstart:trusty
 
 RUN apt-get update && \
-    apt-get install -y fakeroot jq curl && \
+    apt-get install -y fakeroot jq curl sudo && \
     rm -rf /var/lib/apt/lists/*
 
 COPY fake-nodejs.sh /tmp

@@ -14,7 +14,7 @@ trap 'finish' EXIT
 
 ../../../node-deb --no-delete-temp \
                   --verbose \
-                  -- 'whitespace file.js' 'whitespace folder' || true
+                  -- 'whitespace file.js' 'whitespace folder'
 
 declare -ar files=("whitespace file.js" 
                    "whitespace folder/"
