@@ -121,7 +121,7 @@ On install, you will get.
 - A Unix group `bar`
 
 #### Ex. 3
-`package.son`:
+`package.json`:
 
 ```json
 {
