@@ -84,6 +84,19 @@ while [ -n "$1" ]; do
   shift
 done
 
+# if we're in TravisCI land, and we've updated the docker images then rebuild them so the tests match
+if [ -n "$TRAVIS_BRANCH" ]; then
+  # we have to fetch because travis pulls the current branch only by default
+  declare build_head=$(git rev-parse HEAD)
+  git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+  git fetch
+  git checkout -qf develop
+  git checkout "$build_head"
+
+  if [ -n "$(git diff --name-only develop -- docker)" ]; then
+    ./docker/docker.sh
+  fi
+fi
 
 fail() {
     printf '\n\033[31;1mTest failed!\033[0m\n\n'

@@ -38,7 +38,7 @@ fi
 
 if [ ! -d  "$node_out" ]; then
   tar -xJf "$node_dl"
-  mv 'node-v6.10.1-linux-x64' "$node_out"
+  mv 'node-v6.10.1-linux-x64' node
 fi
 
 for image in ${images[@]}; do
