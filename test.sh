@@ -33,15 +33,12 @@ declare -ar all_tests=('simple'
 declare -ar simple_tests=('dog-food'
                           'npm-install')
 
-cur_dir="$(dirname $(readlink -f $0))"
-declare -r cur_dir
-
 print_yellow() {
-    printf "\033[33;1m$@\033[0m\n\n"
+    printf "\033[33;1m%s\033[0m\n\n" "$*"
 }
 
 print_green() {
-    printf "\033[32;1m$@\033[0m\n\n"
+    printf "\033[32;1m%s\033[0m\n\n" "$*"
 }
 
 print_divider() {
@@ -103,7 +100,7 @@ for tst in "${all_tests[@]}"; do
 
     print_yellow "Running test $tst for image $image"
     docker run --rm \
-               --volume "$cur_dir:/src" \
+               --volume "$PWD:/src" \
                --workdir '/src' \
                "heartsucker/node-deb-test:$image" \
                "/src/test/$tst/test.sh"
@@ -121,7 +118,7 @@ for image in "${systemd_images[@]}"; do
 
   docker rm -f "$name" || echo 'container not removed'
 
-  docker run --volume "$cur_dir:/src" \
+  docker run --volume "$PWD:/src" \
              --workdir '/src' \
              --name "$name" \
              --detach \
@@ -149,7 +146,7 @@ for image in "${upstart_images[@]}"; do
 
   docker rm -f "$name" || echo 'container not removed'
 
-  docker run --volume "$cur_dir:/src" \
+  docker run --volume "$PWD:/src" \
              --workdir '/src' \
              --name "$name" \
              --detach \
@@ -174,7 +171,7 @@ for image in "${sysv_images[@]}"; do
   name="$image-node-deb"
 
   docker run --rm \
-             --volume "$cur_dir:/src" \
+             --volume "$PWD:/src" \
              --workdir '/src' \
              --name "$name" \
              "heartsucker/node-deb-test:$image" \
@@ -192,7 +189,7 @@ for tst in "${simple_tests[@]}"; do
 
     print_yellow "Running simple test $tst for image $image"
     docker run --rm \
-               --volume "$cur_dir:/src" \
+               --volume "$PWD:/src" \
                --workdir '/src' \
                "heartsucker/node-deb-test:$image" \
                "/src/test/$tst.sh"
