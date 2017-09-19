@@ -745,6 +745,11 @@ if echo "$@" | grep -q 'npm-shrinkwrap.json'; then
     'command line.'
 fi
 
+if echo "$@" | grep -q 'package-lock.json'; then
+  log_warn "Since node-deb v0.10.0, 'package-lock.json' is automatically included and should not be specified on the" \
+    'command line.'
+fi
+
 # copy the main files
 find "$@" -type d -print0 | {
   while IFS= read -r -d '' dir; do
@@ -801,6 +806,11 @@ fi
 if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then
   log_info "Including 'package.json' in the Debian package."
   cp -pf './package.json' "$deb_dir/usr/share/$package_name/app/"
+fi
+
+if [ -f './package-lock.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/package-lock.json" ]; then
+  log_info "Including 'package-lock.json' in the Debian package."
+  cp -pf './package-lock.json' "$deb_dir/usr/share/$package_name/app/"
 fi
 
 if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/npm-shrinkwrap.json" ]; then
