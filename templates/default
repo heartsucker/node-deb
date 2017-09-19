@@ -3,4 +3,5 @@
 # Configuration for the {{ node_deb_package_name }} daemon
 #
 # Example:
-#   export NODE_ENV="production"
+#
+# NODE_ENV="production"
