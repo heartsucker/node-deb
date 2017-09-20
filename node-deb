@@ -274,6 +274,12 @@ while [ -n "$1" ]; do
       template_executable="$value"
       shift
       ;;
+    --template-hooks)
+      # HELPDOC: Override hooks template (default: 'node_deb.templates.hooks' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_executable="$value"
+      shift
+      ;;
     --template-postinst)
       # HELPDOC: Override maintainer script postinst template (default: 'node_deb.templates.postinst' from package.json then built-in)
       zero_check "$value" "$param"
@@ -521,6 +527,16 @@ fi
 : ${template_executable:="$node_deb_dir/templates/executable"}
 log_debug "The executable template has been set to: $template_executable"
 
+# Set hooks template
+if [ -z "$template_hooks" ]; then
+  template_hooks=$(jq -r '.node_deb.templates.hooks' package.json)
+  if [[ "$template_hooks" == 'null' ]]; then
+    template_hooks=''
+  fi
+fi
+: ${template_hooks:="$node_deb_dir/templates/hooks"}
+log_debug "The hooks template has been set to: $template_hooks"
+
 # Set postinst template
 if [ -z "$template_postinst" ]; then
   template_postinst=$(jq -r '.node_deb.templates.postinst' package.json)
@@ -611,6 +627,7 @@ log_debug "The CLI entrypoint has been set to: $cli_entrypoint"
 
 
 deb_dir="${package_name}_${package_version}_${architecture}"
+hooks_path="usr/share/$package_name/scripts/hooks"
 
 finish() {
   if [ $no_delete_temp -ne 1 ]; then
@@ -693,6 +710,7 @@ replace_vars() {
     -e "s/{{ node_deb_group }}/$(escape "$group")/g" \
     -e "s/{{ node_deb_init }}/$(escape "$init")/g" \
     -e "s/{{ node_deb_no_rebuild }}/$(escape "$no_rebuild")/g" \
+    -e "s/{{ node_deb_hooks }}/$(escape "/$hooks_path")/g" \
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
     -e "s/{{ install_strategy }}/$(escape "$install_strategy")/g" \
   > "$target_file"
@@ -706,6 +724,7 @@ replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst" '0755'
 replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm" '0755'
 replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm" '0755'
 replace_vars "$template_executable" "$deb_dir/usr/share/$package_name/bin/$executable_name" '0755'
+replace_vars "$template_hooks" "$deb_dir/$hooks_path" '0755'
 replace_vars "$template_default_variables" "$deb_dir/etc/default/$package_name" '0644'
 
 if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then

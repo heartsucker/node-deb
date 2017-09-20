@@ -3,6 +3,8 @@
 set -e
 set -o pipefail
 
+{{node_deb_hooks}} "prerm $@"
+
 declare -r init_type='{{ node_deb_init }}'
 declare -r service_name='{{ node_deb_package_name }}'
 
