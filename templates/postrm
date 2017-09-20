@@ -40,6 +40,6 @@ case "$1" in
     rm -rf '/var/log/{{ node_deb_package_name }}'
     ;;
   *)
-    echo "postinst called with unknown argument '$1'"
+    echo "postrm called with unknown argument '$1'"
     ;;
 esac
