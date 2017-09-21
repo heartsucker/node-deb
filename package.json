@@ -45,7 +45,6 @@
       "cli": "node-deb"
     },
     "templates": {
-      "executable": "template-overrides/executable",
       "control": "template-overrides/control"
     }
   }
