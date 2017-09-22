@@ -81,7 +81,7 @@ On install, you will get.
 - An executable named `some-app`
   - That starts the app with the command `app.js arg1 arg2 arg3`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
-- A `systemd` unit file installed to `/etc/systemd/system/some-app.service`
+- A `systemd` unit file installed to `/lib/systemd/system/some-app.service`
 - A `sysv` int script installed to `/etc/init.d/some-app`
 - A Unix user `some-app`
 - A Unix group `some-app`
@@ -115,7 +115,7 @@ On install, you will get.
 - An executable named `some-other-app`
   - That starts the app with the command `index.js --daemon`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
-- A `systemd` unit file installed to `/etc/systemd/system/some-other-app.service`
+- A `systemd` unit file installed to `/lib/systemd/system/some-other-app.service`
 - A `sysv` int script installed to `/etc/init.d/some-other-app`
 - A Unix user `foo`
 - A Unix group `bar`

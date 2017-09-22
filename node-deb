@@ -637,7 +637,7 @@ if [[ "$init" == 'auto' ]] || [[ "$init" == 'upstart' ]]; then
 fi
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'systemd' ]]; then
-  mkdir -p "$deb_dir/etc/systemd/system"
+  mkdir -p "$deb_dir/lib/systemd/system"
 fi
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'sysv' ]]; then
@@ -713,7 +713,7 @@ if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then
 fi
 
 if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
-  replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service" '0644'
+  replace_vars "$template_systemd" "$deb_dir/lib/systemd/system/$package_name.service" '0644'
 fi
 
 if [ "$init" == 'auto' ] || [ "$init" == 'sysv' ]; then
