@@ -5,11 +5,9 @@ declare -ar all_images=('debian-stretch'
                         'debian-jessie'
                         'debian-wheezy'
                         'ubuntu-xenial'
-                        'ubuntu-trusty'
-                        'ubuntu-precise')
+                        'ubuntu-trusty')
 
 # TODO wheezy doesn't have a good upstat image
-# TODO precise breaks for... some reason?
 declare -ar upstart_images=('ubuntu-trusty')
 
 # TODO debian doesn't have nice images for this
@@ -18,8 +16,7 @@ declare -ar systemd_images=('ubuntu-xenial')
 # TODO why doesn't this work in jessie / xenial?
 declare -ar sysv_images=('debian-stretch'
                          'debian-wheezy'
-                         'ubuntu-trusty'
-                         'ubuntu-precise')
+                         'ubuntu-trusty')
 
 declare -ar all_tests=('simple'
                        'whitespace'
