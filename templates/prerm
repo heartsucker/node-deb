@@ -26,4 +26,4 @@ if [[ "$init_type" == 'auto' || "$init_type" == 'systemd' || "$init_type" == 'up
   fi
 fi
 
-rm -rf /usr/share/$service_name/app/node_modules
+rm -rf "/usr/share/$service_name/app/node_modules"
