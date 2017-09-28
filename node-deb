@@ -414,6 +414,21 @@ if [ -z "$package_maintainer" ]; then
 fi
 log_debug "The package maintainer has been set to: $package_maintainer"
 
+# Set install strategy
+if [ -z "$install_strategy" ]; then
+  install_strategy=$(jq -r '.node_deb.install_strategy' package.json)
+  if [[ "$install_strategy" == 'null' ]]; then
+    install_strategy='auto'
+  fi
+fi
+case $install_strategy in
+  auto|copy|npm-install)
+    ;;
+  *)
+    die "Invalid install strategy. Must be 'auto', 'copy', or 'npm-install'"
+esac
+log_debug "The install strategy has been set to: $install_strategy"
+
 # Set the package dependencies
 if [ -z "$package_dependencies" ]; then
   package_dependencies=$(jq -r '.node_deb.dependencies' package.json)
@@ -421,6 +436,9 @@ if [ -z "$package_dependencies" ]; then
     package_dependencies="nodejs, sudo"
   else
     package_dependencies="nodejs, sudo, $package_dependencies"
+  fi
+  if [[ "$install_strategy" == 'npm-install' ]]; then
+    package_dependencies="$package_dependencies, npm"
   fi
 fi
 log_debug "The package dependencies has been set to: $package_dependencies"
@@ -476,21 +494,6 @@ case $init in
     die "Invalid init type: $init. Must be 'auto', 'upstart', 'systemd', 'sysv', or 'none'"
 esac
 log_debug "The init type has been set to: $init"
-
-# Set install strategy
-if [ -z "$install_strategy" ]; then
-  install_strategy=$(jq -r '.node_deb.install_strategy' package.json)
-  if [[ "$install_strategy" == 'null' ]]; then
-    install_strategy='auto'
-  fi
-fi
-case $install_strategy in
-  auto|copy|npm-install)
-    ;;
-  *)
-    die "Invalid install strategy. Must be 'auto', 'copy', or 'npm-install'"
-esac
-log_debug "The install strategy has been set to: $install_strategy"
 
 # Check for extra files
 if [ -z "$extra_files" ]; then
