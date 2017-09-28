@@ -27,3 +27,5 @@ dpkg -i "node-deb_${node_deb_version}_all.deb"
 node-deb --verbose \
          -- node-deb templates/
 apt-get purge -y node-deb
+
+[ ! -d "/usr/share/node-deb" ] || die "Can't remove /usr/share/node-deb"
