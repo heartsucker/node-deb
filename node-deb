@@ -725,7 +725,7 @@ find "$deb_dir/etc" -type f | sed "s/^$(escape "$deb_dir")//" > "$deb_dir/DEBIAN
 
 log_debug 'Templates rendered successfully'
 
-ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
+ln -sf "../share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
@@ -837,6 +837,11 @@ elif hash gmd5sum 2>/dev/null; then
 else
   log_warn 'Unable to find suitable md5 sum program. No md5sums calculated.'
 fi
+
+# strip the build dirname from the Debian package
+sed -i "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
+# and then strip the leading slash again
+sed -i s:/:: "$deb_dir/DEBIAN/md5sums"
 
 log_info 'Building Debian package'
 if [[ -z "$output_deb_name" ]]; then
