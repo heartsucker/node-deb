@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "./test.sh --clean-first",
-    "node-deb": "./node-deb -- node-deb templates/ README.md CHANGELOG.md LICENSE"
+    "node-deb": "./node-deb -- node-deb templates/ README.md CHANGELOG.md"
   },
   "repository": {
     "type": "git",
