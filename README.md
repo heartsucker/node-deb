@@ -186,6 +186,12 @@ The install strategy determines how dependencies in `node_modules` are included 
 - `npm-install`: This option does not include the `node_module` in the Debian package and runs
   `npm install --production` as part of the `postinst` maintainer script.
 
+#### `--launch-strategy`
+
+The launch strategy determines how is launch the entrypoint.
+- `auto`: Use the shebang defined in main JS file used in the entrypoint. This is the default value.
+- `nodejs`: Use the command `/usr/bin/env nodejs` to launch the main JS file defined in the entrypoint.
+
 ## Requirements
 - `dpkg`
 - `fakeroot`

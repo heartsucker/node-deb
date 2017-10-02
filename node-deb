@@ -76,6 +76,7 @@ node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 init=
 no_rebuild=0
 install_strategy=
+launch_strategy=
 
 # Other variables
 no_delete_temp=0
@@ -178,7 +179,13 @@ while [ -n "$1" ]; do
       install_strategy="$value"
       shift
       ;;
-    -m | --maintainer)
+     --launch-strategy)
+      # HELPDOC: How to launch the entrypoint {auto, nodejs}. See README for details. (default: 'node_deb.launch_strategy' from package.json, then 'auto')
+      zero_check "$value" "$param"
+      launch_strategy="$value"
+      shift
+      ;;
+   -m | --maintainer)
       # HELPDOC: The maintainer of the Debian package (default: 'node_deb.maintainer' then 'author' from package.json)
       zero_check "$value" "$param"
       package_maintainer="$value"
@@ -492,6 +499,25 @@ case $install_strategy in
 esac
 log_debug "The install strategy has been set to: $install_strategy"
 
+# Set launch strategy
+if [ -z "$launch_strategy" ]; then
+  launch_strategy=$(jq -r '.node_deb.launch_strategy' package.json)
+  if [[ "$launch_strategy" == 'null' ]]; then
+    launch_strategy='auto'
+  fi
+fi
+case $launch_strategy in
+  auto)
+      launch_strategy=''
+    ;;
+  nodejs)
+      launch_strategy='/usr/bin/env nodejs '
+    ;;
+  *)
+    die "Invalid launch strategy. Must be 'auto', 'nodejs'"
+esac
+log_debug "The launch strategy has been set to: $launch_strategy"
+
 # Check for extra files
 if [ -z "$extra_files" ]; then
   extra_files=$(jq -r '.node_deb.extra_files' package.json)
@@ -695,6 +721,7 @@ replace_vars() {
     -e "s/{{ node_deb_no_rebuild }}/$(escape "$no_rebuild")/g" \
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
     -e "s/{{ install_strategy }}/$(escape "$install_strategy")/g" \
+    -e "s/{{ launch_strategy }}/$(escape "$launch_strategy")/g" \
   > "$target_file"
   ### END TEMPLATE_VARS ###
   chmod "$permissions" "$target_file"
