@@ -130,8 +130,6 @@ On install, you will get.
   "node_deb": {
     "init": "none",
     "dependencies": "apparmor, tor",
-    "user": "tor-ro",
-    "group": "www-data",
     "templates": {
       "postinst": "my-teplates/my-postinst-template.txt"
     },
@@ -158,8 +156,7 @@ On install, you will get.
 - An executable named `a-third-app`
   - That starts the app with the command `app.js`
 - No `upstart`, `systemd`, or `sysv` scripts
-- A Unix user `tor-ro`
-- A Unix group `www-data`
+- No Unix user or group
 
 Note: Removal via `apt-get purge` will attempt to remove the user and group defined in the Debian package.
 This can have serious consequences if the user or group is shared by other applications!
