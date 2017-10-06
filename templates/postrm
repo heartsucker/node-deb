@@ -3,6 +3,8 @@
 set -e
 set -o pipefail
 
+{{node_deb_hooks}} "postrm $@"
+
 # Will return true even if deletion fails
 delete_user() {
   : "${1:?'User was not defined'}"
@@ -40,6 +42,6 @@ case "$1" in
     rm -rf '/var/log/{{ node_deb_package_name }}'
     ;;
   *)
-    echo "postinst called with unknown argument '$1'"
+    echo "postrm called with unknown argument '$1'"
     ;;
 esac
