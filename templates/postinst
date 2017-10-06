@@ -110,13 +110,14 @@ dependency_install() {
   esac
 }
 
-add_group '{{ node_deb_group }}' ''
-add_user '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
 dependency_install '{{ node_deb_package_name }}'
 
-mkdir -p '/var/log/{{ node_deb_package_name }}'
-chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
-
 if [[ "$init_type" != 'none' ]]; then
+  add_group '{{ node_deb_group }}' ''
+  add_user '{{ node_deb_user }}' '' '{{ node_deb_group }}' '{{ node_deb_user }} user-daemon' '/bin/false'
+
+  mkdir -p '/var/log/{{ node_deb_package_name }}'
+  chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
+
   start_service '{{ node_deb_package_name }}'
 fi
