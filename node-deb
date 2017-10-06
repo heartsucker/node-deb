@@ -39,7 +39,7 @@ readlink_f() {
 node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
 declare -r node_deb_dir
 
-# the absolute path of the target protject's source code on the system
+# the absolute path of the target project's source code on the system
 source_dir="$(readlink_f "$(pwd)")"
 declare -r source_dir
 
