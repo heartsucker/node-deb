@@ -81,7 +81,7 @@ On install, you will get.
 - An executable named `some-app`
   - That starts the app with the command `app.js arg1 arg2 arg3`
 - An `upstart` init script installed to `/etc/init/some-app.conf`
-- A `systemd` unit file installed to `/etc/systemd/system/some-app.service`
+- A `systemd` unit file installed to `/lib/systemd/system/some-app.service`
 - A `sysv` int script installed to `/etc/init.d/some-app`
 - A Unix user `some-app`
 - A Unix group `some-app`
@@ -115,7 +115,7 @@ On install, you will get.
 - An executable named `some-other-app`
   - That starts the app with the command `index.js --daemon`
 - An `upstart` init script installed to `/etc/init/some-other-app.conf`
-- A `systemd` unit file installed to `/etc/systemd/system/some-other-app.service`
+- A `systemd` unit file installed to `/lib/systemd/system/some-other-app.service`
 - A `sysv` int script installed to `/etc/init.d/some-other-app`
 - A Unix user `foo`
 - A Unix group `bar`
@@ -130,8 +130,6 @@ On install, you will get.
   "node_deb": {
     "init": "none",
     "dependencies": "apparmor, tor",
-    "user": "tor-ro",
-    "group": "www-data",
     "templates": {
       "postinst": "my-teplates/my-postinst-template.txt"
     },
@@ -158,8 +156,7 @@ On install, you will get.
 - An executable named `a-third-app`
   - That starts the app with the command `app.js`
 - No `upstart`, `systemd`, or `sysv` scripts
-- A Unix user `tor-ro`
-- A Unix group `www-data`
+- No Unix user or group
 
 Note: Removal via `apt-get purge` will attempt to remove the user and group defined in the Debian package.
 This can have serious consequences if the user or group is shared by other applications!
@@ -198,9 +195,9 @@ Tests are run via `docker`. This is also available through `apt` and `brew`.
 
 ## Support
 
-`node-deb` only officially supports the currently supported LTS versions of Debian and Ubuntu. This includes both
+`node-deb` only officially supports the currently supported versions of Debian and Ubuntu (LTS). This includes both
 for building packages and deploying packages. At the time of this update, this translates to Debian Wheezy through
-Stretch and Ubuntu Precise through Xenial. Care has been taken to ensure this packages correctly on macOS, and macOS
+Stretch and Ubuntu Trusty through Xenial. Care has been taken to ensure this packages correctly on macOS, and macOS
 specific issues should still be reported.
 
 

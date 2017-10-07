@@ -30,7 +30,7 @@ grep -q 'POSTRM_OVERRIDE' "$output/DEBIAN/postrm" \
   || die 'postrm script not overridden'
 grep -q 'PRERM_OVERRIDE' "$output/DEBIAN/prerm" \
   || die 'prerm script not overridden'
-grep -q 'SYSTEMD_SERVICE_OVERRIDE' "$output/etc/systemd/system/overridden-package-name.service" \
+grep -q 'SYSTEMD_SERVICE_OVERRIDE' "$output/lib/systemd/system/overridden-package-name.service" \
   || die 'systemd unit not overridden'
 grep -q 'UPSTART_CONF_OVERRIDE' "$output/etc/init/overridden-package-name.conf" \
   || die 'Upstat conf not overridden'

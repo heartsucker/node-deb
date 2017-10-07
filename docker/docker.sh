@@ -6,7 +6,6 @@ cd "$(dirname $0)"
 declare -ar images=('debian-wheezy'
                     'debian-jessie'
                     'debian-stretch'
-                    'ubuntu-precise'
                     'ubuntu-trusty'
                     'ubuntu-xenial')
 

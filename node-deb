@@ -39,7 +39,7 @@ readlink_f() {
 node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
 declare -r node_deb_dir
 
-# the absolute path of the target protject's source code on the system
+# the absolute path of the target project's source code on the system
 source_dir="$(readlink_f "$(pwd)")"
 declare -r source_dir
 
@@ -637,7 +637,7 @@ if [[ "$init" == 'auto' ]] || [[ "$init" == 'upstart' ]]; then
 fi
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'systemd' ]]; then
-  mkdir -p "$deb_dir/etc/systemd/system"
+  mkdir -p "$deb_dir/lib/systemd/system"
 fi
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'sysv' ]]; then
@@ -713,7 +713,7 @@ if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then
 fi
 
 if [ "$init" == 'auto' ] || [ "$init" == 'systemd' ]; then
-  replace_vars "$template_systemd" "$deb_dir/etc/systemd/system/$package_name.service" '0644'
+  replace_vars "$template_systemd" "$deb_dir/lib/systemd/system/$package_name.service" '0644'
 fi
 
 if [ "$init" == 'auto' ] || [ "$init" == 'sysv' ]; then
@@ -725,7 +725,7 @@ find "$deb_dir/etc" -type f | sed "s/^$(escape "$deb_dir")//" > "$deb_dir/DEBIAN
 
 log_debug 'Templates rendered successfully'
 
-ln -sf "/usr/share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
+ln -sf "../share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
@@ -837,6 +837,11 @@ elif hash gmd5sum 2>/dev/null; then
 else
   log_warn 'Unable to find suitable md5 sum program. No md5sums calculated.'
 fi
+
+# strip the build dirname from the Debian package
+sed -i "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
+# and then strip the leading slash again
+sed -i s:/:: "$deb_dir/DEBIAN/md5sums"
 
 log_info 'Building Debian package'
 if [[ -z "$output_deb_name" ]]; then

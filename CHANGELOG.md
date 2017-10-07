@@ -1,5 +1,14 @@
 # CHANGELOG
 
+#### 0.10.1 2017-10-07
+- Removed
+  - Creation/removal of Unix user/group for non-service applications
+
+#### 0.10.0 2017-09-20
+- Added
+  - Now includes `package-lock.json` if it exists
+  - Debian package now has a dependency on `sudo` which is needed for starting the app with Upstart
+
 #### 0.9.1 2017-09-07
 - Fixed
   - When using the intall strategy `copy` or `auto`, symlinks in `node_modules` are dereferenced

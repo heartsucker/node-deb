@@ -1,6 +1,6 @@
 {
   "name": "node-deb",
-  "version": "0.9.1",
+  "version": "0.10.1",
   "description": "Debian packaging for Node.js projects",
   "author": "heartsucker <heartsucker@autistici.org>",
   "bin": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "./test.sh --clean-first",
-    "node-deb": "./node-deb -- node-deb templates/ README.md CHANGELOG.md LICENSE"
+    "node-deb": "./node-deb -- node-deb templates/ README.md CHANGELOG.md"
   },
   "repository": {
     "type": "git",
@@ -45,7 +45,6 @@
       "cli": "node-deb"
     },
     "templates": {
-      "executable": "template-overrides/executable",
       "control": "template-overrides/control"
     }
   }
