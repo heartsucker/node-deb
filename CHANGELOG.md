@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.10.1 2017-10-07
+- Removed
+  - Creation/removal of Unix user/group for non-service applications
+
 #### 0.10.0 2017-09-20
 - Added
   - Now includes `package-lock.json` if it exists
