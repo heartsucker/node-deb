@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
+OS=$(uname)
+
 die() {
   echo 'ERROR:' "$@" >&2
   exit 1
@@ -839,9 +841,14 @@ else
 fi
 
 # strip the build dirname from the Debian package
-sed -i "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
 # and then strip the leading slash again
-sed -i s:/:: "$deb_dir/DEBIAN/md5sums"
+if [ "$OS" == "Linux" ]; then
+    sed -i "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
+    sed -i s:/:: "$deb_dir/DEBIAN/md5sums"
+else
+    sed -i '' "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
+    sed -i '' s:/:: "$deb_dir/DEBIAN/md5sums"
+fi
 
 log_info 'Building Debian package'
 if [[ -z "$output_deb_name" ]]; then
