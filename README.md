@@ -158,10 +158,11 @@ On install, you will get.
 - No `upstart`, `systemd`, or `sysv` scripts
 - No Unix user or group
 
+#### &c.
+
 Note: Removal via `apt-get purge` will attempt to remove the user and group defined in the Debian package.
 This can have serious consequences if the user or group is shared by other applications!
 
-#### &c.
 `node-deb` can Debian-package itself. Just run `npm run node-deb`.
 
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
