@@ -24,6 +24,7 @@ declare -ar all_tests=('simple'
                        'commandline-override'
                        'extra-files'
                        'no-init'
+                       'no-default-dependencies'
                        'real-app'
                        'real-cli')
 

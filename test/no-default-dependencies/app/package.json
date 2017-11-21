@@ -1,0 +1,17 @@
+{
+  "name": "no-default-dependencies",
+  "version": "0.1.0",
+  "description": "foo",
+  "author": "foo <bar@baz.quux>",
+  "private": true,
+  "scripts": {
+    "test": "/bin/true"
+  },
+  "node_deb": {
+    "init": "none",
+    "entrypoints": {
+      "cli": "app.sh"
+    },
+    "dependencies": "nodejs"
+  }
+}
