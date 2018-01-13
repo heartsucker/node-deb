@@ -206,6 +206,11 @@ while [ -n "$1" ]; do
       package_dependencies="$value"
       shift
       ;;
+    --no-default-package-dependencies)
+      # HELPDOC: Do not add default package depndencies.
+      no_default_package_dependencies=1
+      shift
+      ;;
     -u | --user)
       # HELPDOC: The Unix user the process will run as (default: 'node_deb.user' from package.json then $package-name)
       zero_check "$value" "$param"
@@ -417,11 +422,16 @@ log_debug "The package maintainer has been set to: $package_maintainer"
 # Set the package dependencies
 if [ -z "$package_dependencies" ]; then
   package_dependencies=$(jq -r '.node_deb.dependencies' package.json)
-  if [[ "$package_dependencies" == 'null' ]]; then
-    package_dependencies="nodejs, sudo"
+  default_package_dependencies="nodejs, sudo"
+  if [[ "$package_dependencies" != 'null' ]]; then
+    default_package_dependencies="${default_package_dependencies}, "
   else
-    package_dependencies="nodejs, sudo, $package_dependencies"
+    package_dependencies=""
   fi
+  if [[ $no_default_package_dependencies == 1 ]]; then
+    default_package_dependencies=""
+  fi
+  package_dependencies="${default_package_dependencies}${package_dependencies}"
 fi
 log_debug "The package dependencies has been set to: $package_dependencies"
 

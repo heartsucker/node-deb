@@ -158,10 +158,49 @@ On install, you will get.
 - No `upstart`, `systemd`, or `sysv` scripts
 - No Unix user or group
 
+#### Ex. 4
+`package.json`:
+
+```json
+{
+  "name": "a-forth-app",
+  "version": "0.10.1",
+  "node_deb": {
+    "init": "none",
+    "dependencies": "apparmor, tor, nodejs",
+    "templates": {
+      "postinst": "my-teplates/my-postinst-template.txt"
+    },
+    "entrypoints": {
+      "cli": "app.js"
+    }
+  }
+}
+```
+
+`cmd`: `node-deb --no-default-package-dependencies -- app.js lib/`
+
+You will get:
+- A Debian package named `a-forth-app_0.10.1_all.deb`
+  - Containing the files `index.js`, `package.json`, & `npm-shrinkwrap.json|package-lock.json` and the directories `lib` &
+    `node_modules`
+  - With dependencies on `apparmor`, `tor` and `nodejs` only. No default dependencies added
+  - Installed via
+    - `apt-get install a-forth-app`
+    - `apt-get install a-forth-app=0.10.1`
+  - With the `postinst` script rendered from the template `my-postinst-template.txt`
+
+On install, you will get.
+- An executable named `a-forth-app`
+  - That starts the app with the command `app.js`
+- No `upstart`, `systemd`, or `sysv` scripts
+- No Unix user or group
+
+#### &c.
+
 Note: Removal via `apt-get purge` will attempt to remove the user and group defined in the Debian package.
 This can have serious consequences if the user or group is shared by other applications!
 
-#### &c.
 `node-deb` can Debian-package itself. Just run `npm run node-deb`.
 
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.

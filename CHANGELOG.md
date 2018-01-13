@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.10.2 2018-01-13
+- Added
+  - `no-default-dependencie` flag to not include the dependency on `nodejs` and `sudo`.
+
 #### 0.10.1 2017-10-07
 - Removed
   - Creation/removal of Unix user/group for non-service applications
