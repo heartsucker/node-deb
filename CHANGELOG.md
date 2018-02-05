@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.10.3 2018-02-05
+- Fixed
+  - Typo prevented cleanup of symlinks.
+
 #### 0.10.2 2018-01-13
 - Added
   - `no-default-dependencie` flag to not include the dependency on `nodejs` and `sudo`.
