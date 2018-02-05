@@ -799,7 +799,7 @@ if [[ "$install_strategy" == 'auto' ]]; then
       if [ -f "$source_dir/node_modules/.bin" ]; then
         cp -rfL "$source_dir/node_modules/.bin/" "$deb_dir/usr/share/$package_name/app/node_modules/.bin/"
         # only keep the links that still point to something
-        for e in $(find "$deb_dir/usr/share/$package_name/app/node_modeules/.bin/"); do
+        for e in $(find "$deb_dir/usr/share/$package_name/app/node_modules/.bin/"); do
           stat "$(readlink_f "$e")" || rm -rf "$e"
         done
       fi
