@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.10.4 2018-02-20
+- Fixed
+  - Error with `sed` commands on macOS
+
 #### 0.10.3 2018-02-05
 - Fixed
   - Typo prevented cleanup of symlinks.
