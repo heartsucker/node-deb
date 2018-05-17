@@ -85,11 +85,11 @@ dependency_install() {
       if hash npm 2> /dev/null; then
         if [ ! -d './node_modules' ]; then
           echo "Directory 'node_modules' did not exist. Running 'npm install'"
-          npm install --production
+          npm install --production --unsafe-perm
         else
           if [ "$no_rebuild" -eq 0 ]; then
             echo "Directory 'node_modules' exists. Running 'npm rebuild'"
-            npm rebuild --production
+            npm rebuild --production --unsafe-perm
           fi
         fi
       else
@@ -101,7 +101,7 @@ dependency_install() {
       ;;
     npm-install)
       echo 'Installing dependenencies from NPM'
-      npm install --production
+      npm install --production --unsafe-perm
       ;;
     *)
       echo "WARN: Unexpected install strategy: $install_strategy"
