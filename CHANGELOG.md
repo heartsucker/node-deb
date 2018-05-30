@@ -1,5 +1,10 @@
 # CHANGELOG
 
+#### 0.10.5 2018-05-30
+- Fixed
+  - Permissions errors during install for native builds
+  - Incorrect quoting on app entrypoints
+
 #### 0.10.4 2018-02-20
 - Fixed
   - Error with `sed` commands on macOS
