@@ -463,7 +463,7 @@ if [ -z "$user" ]; then
     user="$package_name"
   fi
 fi
-log_debug "The Unix user has been set to: $user"
+log_debug "The Unix user has been set to: ${user:0:32}"
 
 # Set unix group
 if [ -z "$group" ]; then
@@ -472,7 +472,7 @@ if [ -z "$group" ]; then
     group="$user"
   fi
 fi
-log_debug "The Unix group has been set to: $group"
+log_debug "The Unix group has been set to: ${group:0:32}"
 
 # Set init type
 if [ -z "$init" ]; then
@@ -701,8 +701,8 @@ replace_vars() {
     -e "s/{{ node_deb_package_maintainer }}/$(escape "$package_maintainer")/g" \
     -e "s/{{ node_deb_package_dependencies }}/$(escape "$package_dependencies")/g" \
     -e "s/{{ node_deb_package_architecture }}/$(escape "$architecture")/g" \
-    -e "s/{{ node_deb_user }}/$(escape "$user")/g" \
-    -e "s/{{ node_deb_group }}/$(escape "$group")/g" \
+    -e "s/{{ node_deb_user }}/$(escape "${user:0:32}")/g" \
+    -e "s/{{ node_deb_group }}/$(escape "${group:0:32}")/g" \
     -e "s/{{ node_deb_init }}/$(escape "$init")/g" \
     -e "s/{{ node_deb_no_rebuild }}/$(escape "$no_rebuild")/g" \
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
