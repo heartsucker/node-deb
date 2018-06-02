@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 0.10.6 2018-05-02
+- Fixed
+  - Bug where Unix user/group names over 32 characters were accepted, thus breaking installs
+
 #### 0.10.5 2018-05-30
 - Fixed
   - Permissions errors during install for native builds
