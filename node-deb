@@ -465,6 +465,11 @@ if [ -z "$user" ]; then
 fi
 log_debug "The Unix user has been set to: $user"
 
+if [ $(printf $user | wc -c) -gt 32 ]; then
+  echo "User names must be 32 characters or less. Found: $user" >&2
+  exit 1
+fi
+
 # Set unix group
 if [ -z "$group" ]; then
   group=$(jq -r '.node_deb.group' package.json)
@@ -473,6 +478,11 @@ if [ -z "$group" ]; then
   fi
 fi
 log_debug "The Unix group has been set to: $group"
+
+if [ $(printf $group | wc -c) -gt 32 ]; then
+  echo "Group names must be 32 characters or less. Found: $group" >&2
+  exit 1
+fi
 
 # Set init type
 if [ -z "$init" ]; then
