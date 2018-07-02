@@ -78,22 +78,26 @@ start_service () {
 
 dependency_install() {
   : "${1:?'Package name was not defined'}"
-  cd "/usr/share/$1/app"
+  cd "{{ node_deb_install_dir }}/$1/app"
 
   case $install_strategy in
     auto)
-      if hash npm 2> /dev/null; then
-        if [ ! -d './node_modules' ]; then
+      if [ ! -d './node_modules' ]; then
+        if hash npm 2> /dev/null; then
           echo "Directory 'node_modules' did not exist. Running 'npm install'"
           npm install --production --unsafe-perm
         else
-          if [ "$no_rebuild" -eq 0 ]; then
-            echo "Directory 'node_modules' exists. Running 'npm rebuild'"
-            npm rebuild --production --unsafe-perm
-          fi
+          echo "WARN: 'npm' was not on the path. Dependencies may be missing."
         fi
       else
-        echo "WARN: 'npm' was not on the path. Dependencies may be missing."
+        if [ "$no_rebuild" -eq 0 ]; then
+          if hash npm 2> /dev/null; then
+            echo "Directory 'node_modules' exists. Running 'npm rebuild'"
+            npm rebuild --production --unsafe-perm
+          else
+            echo "WARN: 'npm' was not on the path. Dependencies may be missing."
+          fi
+        fi
       fi
       ;;
     copy)

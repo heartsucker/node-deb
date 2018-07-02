@@ -77,6 +77,7 @@ package_dependencies=
 node_deb_version=$(jq -r '.version' "$node_deb_dir/package.json")
 init=
 no_rebuild=0
+install_dir=
 install_strategy=
 
 # Other variables
@@ -211,6 +212,11 @@ while [ -n "$1" ]; do
     --no-default-package-dependencies)
       # HELPDOC: Do not add default package depndencies.
       no_default_package_dependencies=1
+      ;;
+    --install-dir)
+      # HELPDOC: The directory where the package will be installed (default: 'node_deb.install_dir' then '/usr/share')
+      zero_check "$value" "$param"
+      install-dir="$value"
       shift
       ;;
     -u | --user)
@@ -387,6 +393,15 @@ if [ -z "$output_deb_name" ]; then
   fi
 fi
 log_debug "The deb filename name has been set to: ${output_deb_name:-dbkg-deb default}"
+
+# Set the install directory
+if [ -z "$install_dir" ]; then
+  install_dir=$(jq -r '.node_deb.install_dir' package.json)
+  if [[ "$install_dir" == 'null' ]]; then
+    install_dir='/usr/share'
+  fi
+fi
+log_debug "The install_dir directory was set to: $install_dir"
 
 # Set the package version
 if [ -z "$package_version" ]; then
@@ -650,8 +665,8 @@ log_info 'Making install directories'
 mkdir -p "$deb_dir/DEBIAN" \
          "$deb_dir/etc/$package_name" \
          "$deb_dir/etc/default" \
-         "$deb_dir/usr/share/$package_name/app" \
-         "$deb_dir/usr/share/$package_name/bin" \
+         "$deb_dir$install_dir/$package_name/app" \
+         "$deb_dir$install_dir/$package_name/bin" \
          "$deb_dir/usr/bin"
 
 if [[ "$init" == 'auto' ]] || [[ "$init" == 'upstart' ]]; then
@@ -717,6 +732,7 @@ replace_vars() {
     -e "s/{{ node_deb_no_rebuild }}/$(escape "$no_rebuild")/g" \
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
     -e "s/{{ install_strategy }}/$(escape "$install_strategy")/g" \
+    -e "s/{{ node_deb_install_dir }}/$(escape "$install_dir")/g" \
   > "$target_file"
   ### END TEMPLATE_VARS ###
   chmod "$permissions" "$target_file"
@@ -727,7 +743,7 @@ replace_vars "$template_control" "$deb_dir/DEBIAN/control" '0644'
 replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst" '0755'
 replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm" '0755'
 replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm" '0755'
-replace_vars "$template_executable" "$deb_dir/usr/share/$package_name/bin/$executable_name" '0755'
+replace_vars "$template_executable" "$deb_dir$install_dir/$package_name/bin/$executable_name" '0755'
 replace_vars "$template_default_variables" "$deb_dir/etc/default/$package_name" '0644'
 
 if [ "$init" == 'auto' ] || [ "$init" == 'upstart' ]; then
@@ -747,7 +763,7 @@ find "$deb_dir/etc" -type f | sed "s/^$(escape "$deb_dir")//" > "$deb_dir/DEBIAN
 
 log_debug 'Templates rendered successfully'
 
-ln -sf "../share/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
+ln -sf "$install_dir/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$executable_name"
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
@@ -777,7 +793,7 @@ find "$@" -type d -print0 | {
   while IFS= read -r -d '' dir; do
     if ! readlink_f "$dir" | grep -Eq "^$source_dir/node_modules/.*"; then
       log_debug "Making directory: $dir"
-      mkdir -p "$deb_dir/usr/share/$package_name/app/$dir"
+      mkdir -p "$deb_dir$install_dir/$package_name/app/$dir"
     fi
   done
 }
@@ -785,7 +801,7 @@ find "$@" -type f -print0 | {
   while IFS= read -r -d '' file; do
     if ! readlink_f "$file" | grep -Eq "$source_dir/node_modules/.*"; then
       log_debug "Copying: $file"
-      cp -pf  "$file" "$deb_dir/usr/share/$package_name/app/$file"
+      cp -pf  "$file" "$deb_dir$install_dir/$package_name/app/$file"
     fi
   done
 }
@@ -793,25 +809,25 @@ find "$@" -type f -print0 | {
 copy_node_modules() {
   if [ -d "$source_dir/node_modules" ]; then
     log_debug 'Copying dir: node_modules'
-    cp -rfL "$source_dir/node_modules/" "$deb_dir/usr/share/$package_name/app/"
+    cp -rfL "$source_dir/node_modules/" "$deb_dir$install_dir/$package_name/app/"
   fi
 }
 
 if [[ "$install_strategy" == 'auto' ]]; then
   if [ -d "$source_dir/node_modules" ]; then
     if hash npm 2> /dev/null; then
-      mkdir -p "$deb_dir/usr/share/$package_name/app/node_modules"
+      mkdir -p "$deb_dir$install_dir/$package_name/app/node_modules"
 
       # this is a bash-y mess, but basically the last sed-cut-sort strips out nested node_modules in dependencies
       for dir in $(npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:^/node_modules/::g' | cut -d / -f 1 | sort -u); do
         log_debug "Copying dependency: $dir"
-        cp -rf "$source_dir/node_modules/$dir" "$deb_dir/usr/share/$package_name/app/node_modules/"
+        cp -rf "$source_dir/node_modules/$dir" "$deb_dir$install_dir/$package_name/app/node_modules/"
       done
 
       if [ -f "$source_dir/node_modules/.bin" ]; then
-        cp -rfL "$source_dir/node_modules/.bin/" "$deb_dir/usr/share/$package_name/app/node_modules/.bin/"
+        cp -rfL "$source_dir/node_modules/.bin/" "$deb_dir$install_dir/$package_name/app/node_modules/.bin/"
         # only keep the links that still point to something
-        for e in $(find "$deb_dir/usr/share/$package_name/app/node_modules/.bin/"); do
+        for e in $(find "$deb_dir$install_dir/$package_name/app/node_modules/.bin/"); do
           stat "$(readlink_f "$e")" || rm -rf "$e"
         done
       fi
@@ -825,19 +841,19 @@ if [[ "$install_strategy" == 'copy' ]]; then
   copy_node_modules
 fi
 
-if ! [ -f "$deb_dir/usr/share/$package_name/app/package.json" ]; then
+if ! [ -f "$deb_dir$install_dir/$package_name/app/package.json" ]; then
   log_info "Including 'package.json' in the Debian package."
-  cp -pf './package.json' "$deb_dir/usr/share/$package_name/app/"
+  cp -pf './package.json' "$deb_dir$install_dir/$package_name/app/"
 fi
 
-if [ -f './package-lock.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/package-lock.json" ]; then
+if [ -f './package-lock.json' ] && ! [ -f "$deb_dir$install_dir/$package_name/app/package-lock.json" ]; then
   log_info "Including 'package-lock.json' in the Debian package."
-  cp -pf './package-lock.json' "$deb_dir/usr/share/$package_name/app/"
+  cp -pf './package-lock.json' "$deb_dir$install_dir/$package_name/app/"
 fi
 
-if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir/usr/share/$package_name/app/npm-shrinkwrap.json" ]; then
+if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir$install_dir/$package_name/app/npm-shrinkwrap.json" ]; then
   log_info "Including 'npm-shrinkwrap.json' in the Debian package."
-  cp -pf './npm-shrinkwrap.json' "$deb_dir/usr/share/$package_name/app/"
+  cp -pf './npm-shrinkwrap.json' "$deb_dir$install_dir/$package_name/app/"
 fi
 
 # Calculate md5sums
