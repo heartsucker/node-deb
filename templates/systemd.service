@@ -7,8 +7,8 @@ Requires=network.target
 [Service]
 Type=simple
 EnvironmentFile=/etc/default/{{ node_deb_package_name }}
-WorkingDirectory=/usr/share/{{ node_deb_package_name }}
-ExecStart=/usr/share/{{ node_deb_package_name }}/app/{{ daemon_entrypoint }}
+WorkingDirectory={{ node_deb_install_dir }}/{{ node_deb_package_name }}
+ExecStart={{ node_deb_install_dir }}/{{ node_deb_package_name }}/app/{{ daemon_entrypoint }}
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 User={{ node_deb_user }}

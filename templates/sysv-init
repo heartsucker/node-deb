@@ -13,10 +13,10 @@
 
 set -u
 
-SCRIPT="/usr/share/{{ node_deb_package_name }}/app/{{ daemon_entrypoint }}"
+SCRIPT="{{ node_deb_install_dir }}/{{ node_deb_package_name }}/app/{{ daemon_entrypoint }}"
 USER="{{ node_deb_user }}"
 NAME="{{ node_deb_package_name }}"
-WORKING_DIRECTORY="/usr/share/{{ node_deb_package_name }}"
+WORKING_DIRECTORY="{{ node_deb_install_dir }}/{{ node_deb_package_name }}"
 DESCRIPTION="{{ node_deb_package_description }}"
 
 . /lib/lsb/init-functions
