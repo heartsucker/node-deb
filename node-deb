@@ -287,6 +287,12 @@ while [ -n "$1" ]; do
       template_executable="$value"
       shift
       ;;
+    --template-preinst)
+      # HELPDOC: Override maintainer script preinst template (default: 'node_deb.templates.preinst' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_preinst="$value"
+      shift
+      ;;
     --template-postinst)
       # HELPDOC: Override maintainer script postinst template (default: 'node_deb.templates.postinst' from package.json then built-in)
       zero_check "$value" "$param"
@@ -558,6 +564,16 @@ fi
 : ${template_executable:="$node_deb_dir/templates/executable"}
 log_debug "The executable template has been set to: $template_executable"
 
+# Set preinst template
+if [ -z "$template_preinst" ]; then
+  template_preinst=$(jq -r '.node_deb.templates.preinst' package.json)
+  if [[ "$template_preinst" == 'null' ]]; then
+    template_preinst=''
+  fi
+fi
+: ${template_preinst:="$node_deb_dir/templates/preinst"}
+log_debug "The preinst template has been set to: $template_preinst"
+
 # Set postinst template
 if [ -z "$template_postinst" ]; then
   template_postinst=$(jq -r '.node_deb.templates.postinst' package.json)
@@ -740,6 +756,7 @@ replace_vars() {
 
 log_info 'Rendering templates'
 replace_vars "$template_control" "$deb_dir/DEBIAN/control" '0644'
+replace_vars "$template_preinst" "$deb_dir/DEBIAN/preinst" '0755'
 replace_vars "$template_postinst" "$deb_dir/DEBIAN/postinst" '0755'
 replace_vars "$template_postrm" "$deb_dir/DEBIAN/postrm" '0755'
 replace_vars "$template_prerm" "$deb_dir/DEBIAN/prerm" '0755'
