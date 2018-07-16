@@ -1,5 +1,13 @@
 # CHANGELOG
 
+#### 0.10.7 2018-07-16
+- Added
+  - `--preinst-template` CLI option and `node_deb.templates.preinst` for Debian `preinst` templates.
+  - `--install-dir` CLI option and `node_deb.install_dir` for variable install locations
+     (e.g., /opt/ instead of /usr/share/)
+- Fixed
+  - Possible NPM related errors on install
+
 #### 0.10.6 2018-05-02
 - Fixed
   - Bug where Unix user/group names over 32 characters were accepted, thus breaking installs
