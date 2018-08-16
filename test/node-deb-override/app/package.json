@@ -16,6 +16,7 @@
     "description": "overridden description",
     "maintainer": "overridden maintainer",
     "templates": {
+      "conffiles": "templates/conffiles",
       "executable": "templates/executable",
       "postinst": "templates/postinst",
       "postrm": "templates/postrm",

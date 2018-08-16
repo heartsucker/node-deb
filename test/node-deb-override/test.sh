@@ -38,5 +38,7 @@ grep -q 'EXECUTABLE_OVERRIDE' "$output/usr/share/overridden-package-name/bin/ove
   || die 'Executable not overridden'
 # TODO add more tests
 
+if [[ $(cat "$output/DEBIAN/conffiles") != '' ]]; then die 'conffiles not overridden'; fi
+
 dpkg -i "$output.deb"
 apt-get purge -y overridden-package-name

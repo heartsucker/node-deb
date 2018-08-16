@@ -269,6 +269,12 @@ while [ -n "$1" ]; do
 
       exit 0
       ;;
+    --template-conffiles)
+      # HELPDOC: Override Debian conffiles template (default: 'node_deb.templates.conffiles' from package.json then built-in)
+      zero_check "$value" "$param"
+      template_conffiles="$value"
+      shift
+      ;;
     --template-control)
       # HELPDOC: Override Debian control template (default: 'node_deb.templates.control' from package.json then built-in)
       zero_check "$value" "$param"
@@ -544,6 +550,17 @@ if [ -z "$extra_files" ]; then
 fi
 log_debug "The extra_files directory was set to: $extra_files"
 
+# Set conffiles template
+if [ -z "$template_conffiles" ]; then
+  template_conffiles=$(jq -r '.node_deb.templates.conffiles' package.json)
+  if [[ "$template_conffiles" == 'null' ]]; then
+    template_conffiles=''
+  fi
+fi
+: ${template_conffiles:="$node_deb_dir/templates/conffiles"}
+log_debug "The conffiles template has been set to: $template_conffiles"
+
+
 # Set control template
 if [ -z "$template_control" ]; then
   template_control=$(jq -r '.node_deb.templates.control' package.json)
@@ -730,6 +747,8 @@ replace_vars() {
   declare -r target_file="$2"
   declare -r permissions="$3"
 
+  lf=$'\n'
+
   # TODO if you change this section, make sure the --list-template-variables command doesn't break
   ### BEGIN TEMPLATE_VARS ###
   sed < "$file" \
@@ -738,6 +757,7 @@ replace_vars() {
     -e "s/{{ node_deb_package_version }}/$(escape "$package_version")/g" \
     -e "s/{{ cli_entrypoint }}/$(escape "$cli_entrypoint")/g" \
     -e "s/{{ daemon_entrypoint }}/$(escape "$daemon_entrypoint")/g" \
+    -e "s/{{ node_deb_conffiles }}/$(escape "$conffiles")/g" \
     -e "s/{{ node_deb_package_description }}/$(escape "$package_description")/g" \
     -e "s/{{ node_deb_package_maintainer }}/$(escape "$package_maintainer")/g" \
     -e "s/{{ node_deb_package_dependencies }}/$(escape "$package_dependencies")/g" \
@@ -749,6 +769,7 @@ replace_vars() {
     -e "s/{{ node_deb_version }}/$(escape "$node_deb_version")/g" \
     -e "s/{{ install_strategy }}/$(escape "$install_strategy")/g" \
     -e "s/{{ node_deb_install_dir }}/$(escape "$install_dir")/g" \
+    -e "s/{{ node_deb_newline }}/\\$lf/g" \
   > "$target_file"
   ### END TEMPLATE_VARS ###
   chmod "$permissions" "$target_file"
@@ -776,7 +797,18 @@ if [ "$init" == 'auto' ] || [ "$init" == 'sysv' ]; then
 fi
 
 # Create conffiles for dpkg, add all files in etc
-find "$deb_dir/etc" -type f | sed "s/^$(escape "$deb_dir")//" > "$deb_dir/DEBIAN/conffiles"
+conffiles=""
+while read fname; do
+  fname=$(sed "s/^$(escape "$deb_dir")//" <<< $fname)
+  # We use {{ node_deb_newline }} to workaround macOS sed issue with escaping newlines
+  if [ -z "$conffiles" ]; then
+    conffiles="$fname"
+  else
+    conffiles="$conffiles{{ node_deb_newline }}$fname"
+  fi
+done <<< "$(find $deb_dir/etc -type f)"
+
+replace_vars "$template_conffiles" "$deb_dir/DEBIAN/conffiles" '0644'
 
 log_debug 'Templates rendered successfully'
 
