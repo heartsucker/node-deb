@@ -899,8 +899,8 @@ if [ "$OS" == "Linux" ]; then
     sed -i "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
     sed -i s:/:: "$deb_dir/DEBIAN/md5sums"
 else
-    sed -i '' "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
-    sed -i '' s:/:: "$deb_dir/DEBIAN/md5sums"
+    sed -i "s/$(escape "$deb_dir")//" "$deb_dir/DEBIAN/md5sums"
+    sed -i s:/:: "$deb_dir/DEBIAN/md5sums"
 fi
 
 log_info 'Building Debian package'
