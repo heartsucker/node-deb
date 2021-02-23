@@ -836,7 +836,7 @@ if [[ "$install_strategy" == 'auto' ]]; then
       mkdir -p "$deb_dir$install_dir/$package_name/app/node_modules"
 
       # this is a bash-y mess, but basically the last sed-cut-sort strips out nested node_modules in dependencies
-      for dir in $(npm ls --parseable --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:^/node_modules/::g' | cut -d / -f 1 | sort -u); do
+      for dir in $(npm ls --parseable --depth=99 --prod | sed -e "s/$(escape "$source_dir")//g" | grep -Ev '^$' | sed -e 's:^/node_modules/::g' | cut -d / -f 1 | sort -u); do
         log_debug "Copying dependency: $dir"
         cp -rf "$source_dir/node_modules/$dir" "$deb_dir$install_dir/$package_name/app/node_modules/"
       done
