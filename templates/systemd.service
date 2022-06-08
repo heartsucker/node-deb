@@ -13,6 +13,7 @@ ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 User={{ node_deb_user }}
 PermissionsStartOnly=true
+SyslogIdentifier={{ node_deb_package_name }}
 
 [Install]
 WantedBy=multi-user.target
